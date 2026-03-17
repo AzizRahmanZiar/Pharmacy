@@ -1,3 +1,4 @@
+// src/pages/sales/components/SaleTable.jsx
 import { FiEye, FiEdit2, FiTrash2 } from 'react-icons/fi';
 
 export function SaleTable({
@@ -17,7 +18,22 @@ export function SaleTable({
               ID
             </th>
             <th className='px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500'>
+              Bill No.
+            </th>
+            <th className='px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500'>
               Patient
+            </th>
+            <th className='px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500'>
+              Total
+            </th>
+            <th className='px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500'>
+              Paid
+            </th>
+            <th className='px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500'>
+              Due
+            </th>
+            <th className='px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500'>
+              Status
             </th>
             <th className='px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500'>
               Date
@@ -34,7 +50,32 @@ export function SaleTable({
                 {(currentPage - 1) * perPage + index + 1}
               </td>
               <td className='whitespace-nowrap px-4 py-3 text-sm font-medium text-gray-800'>
-                {sale.patient_name}
+                {sale.bill_no}
+              </td>
+              <td className='whitespace-nowrap px-4 py-3 text-sm text-gray-600'>
+                {sale.patient_name || '—'}
+              </td>
+              <td className='whitespace-nowrap px-4 py-3 text-sm text-gray-600'>
+                ${Number(sale.total_amount).toFixed(2)}
+              </td>
+              <td className='whitespace-nowrap px-4 py-3 text-sm text-gray-600'>
+                ${Number(sale.paid_amount).toFixed(2)}
+              </td>
+              <td className='whitespace-nowrap px-4 py-3 text-sm text-gray-600'>
+                ${Number(sale.due_amount).toFixed(2)}
+              </td>
+              <td className='whitespace-nowrap px-4 py-3 text-sm'>
+                <span
+                  className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${
+                    sale.payment_status === 'paid'
+                      ? 'bg-green-100 text-green-800'
+                      : sale.payment_status === 'partial'
+                        ? 'bg-yellow-100 text-yellow-800'
+                        : 'bg-red-100 text-red-800'
+                  }`}
+                >
+                  {sale.payment_status}
+                </span>
               </td>
               <td className='whitespace-nowrap px-4 py-3 text-sm text-gray-600'>
                 {new Date(sale.sale_date).toLocaleDateString()}

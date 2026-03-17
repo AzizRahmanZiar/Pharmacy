@@ -10,6 +10,10 @@ class Sale extends Model
     'bill_no',
     'patient_name',
     'sale_date',
+    'total_amount',
+    'paid_amount',
+    'due_amount',
+    'payment_status'
 ];
 
     public function details()

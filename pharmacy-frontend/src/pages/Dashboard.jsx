@@ -11,12 +11,17 @@ import { LoadingSpinner } from '../components/LoadingSpinner';
 import { DashboardCard } from '../components/DashboardCard';
 import { LowStockCard } from '../components/LowStockCard';
 import { LowStockModal } from '../components/LowStockModal';
+import { DashboardCharts } from '../components/DashboardCharts';
+// Import the new components
+import { NearExpiryCard } from '../components/NearExpiryCard';
+import { NearExpiryModal } from '../components/NearExpiryModal';
 
 export default function Dashboard() {
   const [dashboard, setDashboard] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [showLowStockModal, setShowLowStockModal] = useState(false);
+  const [showNearExpiryModal, setShowNearExpiryModal] = useState(false);
 
   useEffect(() => {
     const loadData = async () => {
@@ -36,7 +41,7 @@ export default function Dashboard() {
     loadData();
   }, []);
 
-  // Formatting utilities (can be moved to a utils file)
+  // Formatting utilities
   const formatNumber = (num) => {
     if (num === undefined || num === null) return '0';
     return new Intl.NumberFormat().format(num);
@@ -63,8 +68,11 @@ export default function Dashboard() {
   const openLowStockModal = () => setShowLowStockModal(true);
   const closeLowStockModal = () => setShowLowStockModal(false);
 
+  const openNearExpiryModal = () => setShowNearExpiryModal(true);
+  const closeNearExpiryModal = () => setShowNearExpiryModal(false);
+
   return (
-    <div className='p-6 space-y-6'>
+    <div className='p-6 space-y-6 overflow-auto'>
       <h1 className='text-3xl font-bold text-gray-800'>Dashboard</h1>
 
       {error && (
@@ -112,14 +120,31 @@ export default function Dashboard() {
               count={dashboard?.lowStock?.length || 0}
               onClick={openLowStockModal}
             />
+            {/* New Near Expiry Card */}
+            <NearExpiryCard
+              count={dashboard?.nearExpiry?.length || 0}
+              onClick={openNearExpiryModal}
+            />
           </>
         )}
       </div>
 
+      <DashboardCharts />
+
+      {/* Low Stock Modal */}
       {showLowStockModal && (
         <LowStockModal
           items={dashboard?.lowStock || []}
           onClose={closeLowStockModal}
+          formatDate={formatDate}
+        />
+      )}
+
+      {/* Near Expiry Modal */}
+      {showNearExpiryModal && (
+        <NearExpiryModal
+          items={dashboard?.nearExpiry || []}
+          onClose={closeNearExpiryModal}
           formatDate={formatDate}
         />
       )}

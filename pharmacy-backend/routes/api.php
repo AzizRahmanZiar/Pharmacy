@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\MedicineController;
 use App\Http\Controllers\MedicineItemController;
 use App\Http\Controllers\PurchaseController;
+use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SaleController;
 
 
@@ -44,3 +45,9 @@ Route::post('/expenses',[ExpenseController::class,'store']);
 Route::put('/expenses/{id}',[ExpenseController::class,'update']);
 Route::delete('/expenses/{id}',[ExpenseController::class,'destroy']);
 
+
+
+
+Route::get('/reports/daily', [ReportController::class, 'daily']);
+Route::get('/reports/monthly', [ReportController::class, 'monthly']);
+Route::get('/reports/yearly', [ReportController::class, 'yearly']);
