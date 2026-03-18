@@ -4,21 +4,37 @@ namespace App\Http\Controllers;
 
 use App\Models\Expense;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class ExpenseController extends Controller
 {
     public function index()
-    {
-        $expese=Expense::latest()->paginate(4);
+{
+    $expense = Expense::where('user_id', Auth::id())
+        ->latest()
+        ->paginate(4);
 
-        return response()->json($expese);
-
-
-    }
+    return response()->json($expense);
+}
 
     public function store(Request $request)
     {
-        $expense = Expense::create($request->all());
+        $request->validate([
+        'title' => 'required|string|max:255',
+        'amount' => 'required|numeric',
+        'expense_date' => 'required|date',
+        'note' => 'nullable|string'
+    ]);
+
+
+        $expense = Expense::create([
+        'user_id' => Auth::id(), // ✅ IMPORTANT
+        'title' => $request->title,
+        'amount' => $request->amount,
+        'expense_date' => $request->expense_date,
+        'note' => $request->note
+    ]);
+    ($request->all());
 
         return response()->json($expense);
     }
@@ -26,7 +42,8 @@ class ExpenseController extends Controller
 
     public function update(Request $request, $id)
 {
-    $expense = Expense::findOrFail($id);
+    $expense = Expense::where('user_id', Auth::id())
+        ->findOrFail($id);
 
     $request->validate([
         'title' => 'required|string|max:255',
@@ -51,7 +68,8 @@ class ExpenseController extends Controller
 
     public function destroy($id)
 {
-    $expense = Expense::findOrFail($id);
+    $expense = Expense::where('user_id', Auth::id())
+        ->findOrFail($id);
 
     $expense->delete();
 

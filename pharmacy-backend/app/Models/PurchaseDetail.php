@@ -25,4 +25,9 @@ class PurchaseDetail extends Model
     {
         return $this->belongsTo(Medicine::class);
     }
+
+    public function purchase()
+{
+    return $this->belongsTo(Purchase::class);
+}
 }

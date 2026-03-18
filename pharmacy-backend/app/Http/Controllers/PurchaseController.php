@@ -7,12 +7,13 @@ use App\Models\Purchase;
 use App\Models\PurchaseDetail;
 use App\Models\Medicine;
 use App\Models\MedicineItem;
+use Illuminate\Support\Facades\Auth;
 
 class PurchaseController extends Controller{
 
     public function index(Request $request)
     {
-        $query = Purchase::withSum('details', 'total_buyer_price')
+        $query = Purchase::where('user_id', Auth::id())->withSum('details', 'total_buyer_price')
             ->withSum('details', 'total_profit')
             ->latest();
 
@@ -27,7 +28,7 @@ class PurchaseController extends Controller{
 
 
     public function show($id){
-        $purchase = Purchase::with('details')->find($id);
+        $purchase = Purchase::where('user_id', Auth::id())->with('details')->find($id);
 
         if (!$purchase) {
             return response()->json([
@@ -40,10 +41,10 @@ class PurchaseController extends Controller{
 
 
     public function formData(){
-        $names = MedicineItem::select('name')->distinct()->get();
-        $generics = MedicineItem::select('generic_name')->distinct()->get();
-        $companies = MedicineItem::select('company')->distinct()->get();
-        $families = MedicineItem::select('family')->distinct()->get();
+        $names = MedicineItem::where('user_id', Auth::id())->select('name')->distinct()->get();
+        $generics = MedicineItem::where('user_id', Auth::id())->select('generic_name')->distinct()->get();
+        $companies = MedicineItem::where('user_id', Auth::id())->select('company')->distinct()->get();
+        $families = MedicineItem::where('user_id', Auth::id())->select('family')->distinct()->get();
 
         return response()->json([
             'names' => $names,
@@ -94,6 +95,7 @@ else{
 }
 
 $purchase = Purchase::create([
+    'user_id'=>Auth::id(),
     'bill_no'=>$request->bill_no,
     'purchase_date'=>$request->purchase_date,
     'total_amount'=>$totalAmount,
@@ -133,6 +135,7 @@ foreach ($request->medicines as $row) {
     ]);
 
     Medicine::create([
+        'user_id'=> Auth::id(),
         'name' => $name,
         'generic_name' => $generic,
         'company' => $company,
@@ -153,123 +156,6 @@ return response()->json([
 }
 
 
-    // public function update(Request $request, $id){
-    //     $request->validate([
-    //         'bill_no' => 'required|string',
-    //         'purchase_date' => 'required|date',
-    //         'medicines' => 'required|array',
-
-    //         'medicines.*.name' => 'required|string',
-    //         'medicines.*.quantity' => 'required|integer|min:1',
-    //         'medicines.*.buy_price' => 'required|numeric|min:0',
-    //         'medicines.*.sale_price' => 'required|numeric|min:0',
-    //     ]);
-
-    //     $purchase = Purchase::with('details')->findOrFail($id);
-
-    //     // 1. REMOVE OLD STOCK
-    //     foreach ($purchase->details as $detail) {
-
-    //         $medicine = Medicine::where('name', $detail->name)
-    //             ->where('generic_name', $detail->generic_name)
-    //             ->where('company', $detail->company)
-    //             ->first();
-
-    //         if ($medicine) {
-
-    //             $medicine->quantity -= $detail->quantity;
-    //             $medicine->total_buyer_price -= $detail->total_buyer_price;
-
-    //             if ($medicine->quantity <= 0) {
-    //                 $medicine->delete();
-    //             } else {
-    //                 $medicine->save();
-    //             }
-    //         }
-    //     }
-
-    //     // 2. DELETE OLD DETAILS
-    //     $purchase->details()->delete();
-
-    //     // 3. UPDATE PURCHASE
-    //     $purchase->update([
-    //         'bill_no' => $request->bill_no,
-    //         'purchase_date' => $request->purchase_date
-    //     ]);
-
-    //     // 4. INSERT NEW DETAILS
-    //     foreach ($request->medicines as $row) {
-
-    //         $name = $row['name'];
-    //         $generic = $row['generic_name'] ?? null;
-    //         $company = $row['company'] ?? null;
-    //         $family = $row['family'] ?? null;
-    //         $quantity = $row['quantity'];
-    //         $buyPrice = $row['buy_price'];
-    //         $salePrice = $row['sale_price'];
-    //         $expiry = $row['expiry_date'] ?? null;
-
-    //         $totalBuyerPrice = $quantity * $buyPrice;
-
-    //         $profitPerUnit = $salePrice - $buyPrice;
-    //         $totalProfit = $profitPerUnit * $quantity;
-
-    //         PurchaseDetail::create([
-    //             'purchase_id' => $purchase->id,
-    //             'name' => $name,
-    //             'generic_name' => $generic,
-    //             'company' => $company,
-    //             'family' => $family,
-    //             'quantity' => $quantity,
-    //             'buy_price' => $buyPrice,
-    //             'sale_price' => $salePrice,
-    //             'expiry_date' => $expiry,
-    //             'total_buyer_price' => $totalBuyerPrice,
-    //             'profit_per_unit' => $profitPerUnit,
-    //             'total_profit' => $totalProfit
-    //         ]);
-
-
-    //         // 5. UPDATE STOCK
-    //         $medicine = Medicine::where('name',$name)
-    //             ->where('generic_name',$generic)
-    //             ->where('company',$company)
-    //             ->first();
-
-    //         if($medicine){
-
-    //             $medicine->quantity += $quantity;
-    //             $medicine->total_buyer_price += $totalBuyerPrice;
-    //             $medicine->buy_price = $buyPrice;
-    //             $medicine->sale_price = $salePrice;
-    //             $medicine->expiry_date = $expiry;
-    //             $medicine->family = $family;
-
-    //             $medicine->save();
-
-    //         }else{
-
-    //             Medicine::create([
-    //                 'name'=>$name,
-    //                 'generic_name'=>$generic,
-    //                 'company'=>$company,
-    //                 'family'=>$family,
-    //                 'quantity'=>$quantity,
-    //                 'buy_price'=>$buyPrice,
-    //                 'sale_price'=>$salePrice,
-    //                 'expiry_date'=>$expiry,
-    //                 'total_buyer_price'=>$totalBuyerPrice
-    //             ]);
-    //         }
-    //     }
-
-    //     return response()->json([
-    //         'success'=>true
-    //     ]);
-    // }
-
-
-
     public function update(Request $request, $id)
 {
     $request->validate([
@@ -288,11 +174,11 @@ return response()->json([
         'medicines.*.expiry_date' => 'nullable|date',
     ]);
 
-    $purchase = Purchase::with('details')->findOrFail($id);
+    $purchase = Purchase::where('user_id', Auth::id())->with('details')->findOrFail($id);
 
     // 1. Remove old stock related to this purchase
     foreach ($purchase->details as $detail) {
-        $medicine = Medicine::where('name', $detail->name)
+        $medicine = Medicine::where('user_id', Auth::id())->where('name', $detail->name)
             ->where('generic_name', $detail->generic_name)
             ->where('company', $detail->company)
             ->where('expiry_date', $detail->expiry_date)
@@ -367,6 +253,7 @@ return response()->json([
 
         // Create new Medicine record (no combination)
         Medicine::create([
+            'user_id'=> Auth::id(),
             'name' => $name,
             'generic_name' => $generic,
             'company' => $company,
@@ -385,13 +272,14 @@ return response()->json([
 }
 
     public function destroy($id){
-        $purchase = Purchase::with('details')->findOrFail($id);
+        $purchase = Purchase::where('user_id', Auth::id())->with('details')->findOrFail($id);
         // 1. Remove stock from medicines
         foreach ($purchase->details as $detail) {
 
-            $medicine = Medicine::where('name', $detail->name)
+            $medicine = Medicine::where('user_id', Auth::id())->where('name', $detail->name)
                 ->where('generic_name', $detail->generic_name)
                 ->where('company', $detail->company)
+->where('expiry_date', $detail->expiry_date)
                 ->first();
 
             if ($medicine) {

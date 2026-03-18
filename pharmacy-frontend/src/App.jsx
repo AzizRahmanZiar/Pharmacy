@@ -1,7 +1,10 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider } from './context/AuthContext';
+import ProtectedRoute from './components/ProtectedRoute';
 import Layout from './components/Layout';
+import Login from './pages/Login';
+import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
-
 import StockIndex from './pages/medicines/StockIndex';
 import ItemsCreate from './pages/items/ItemsCreate';
 import Purchase from './pages/purchases/Purchase';
@@ -10,18 +13,35 @@ import ExpensesPage from './pages/expenses/Expenses';
 
 function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path='/' element={<Layout />}>
-          <Route index element={<Dashboard />} />
-          <Route path='expense' element={<ExpensesPage />} />
-          <Route path='medicine' element={<StockIndex />} />
-          <Route path='purchase' element={<Purchase />} />
-          <Route path='sale' element={<Sale />} />
-          <Route path='items' element={<ItemsCreate />} />
-        </Route>
-      </Routes>
-    </BrowserRouter>
+    <AuthProvider>
+      <BrowserRouter>
+        <Routes>
+          {/* Public routes */}
+          <Route path='/login' element={<Login />} />
+          <Route path='/register' element={<Register />} />
+
+          {/* Protected routes – all under Layout */}
+          <Route
+            path='/'
+            element={
+              <ProtectedRoute>
+                <Layout />
+              </ProtectedRoute>
+            }
+          >
+            <Route index element={<Dashboard />} />
+            <Route path='expense' element={<ExpensesPage />} />
+            <Route path='medicine' element={<StockIndex />} />
+            <Route path='purchase' element={<Purchase />} />
+            <Route path='sale' element={<Sale />} />
+            <Route path='items' element={<ItemsCreate />} />
+          </Route>
+
+          {/* Redirect any unknown paths to dashboard (or login if not authenticated) */}
+          <Route path='*' element={<Navigate to='/' replace />} />
+        </Routes>
+      </BrowserRouter>
+    </AuthProvider>
   );
 }
 
