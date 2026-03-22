@@ -10,6 +10,7 @@ import ItemsCreate from './pages/items/ItemsCreate';
 import Purchase from './pages/purchases/Purchase';
 import Sale from './pages/sales/Sale';
 import ExpensesPage from './pages/expenses/Expenses';
+import Return from './pages/Return';
 
 function App() {
   return (
@@ -35,9 +36,8 @@ function App() {
             <Route path='purchase' element={<Purchase />} />
             <Route path='sale' element={<Sale />} />
             <Route path='items' element={<ItemsCreate />} />
+            <Route path='return' element={<Return />} />
           </Route>
-
-          {/* Redirect any unknown paths to dashboard (or login if not authenticated) */}
           <Route path='*' element={<Navigate to='/' replace />} />
         </Routes>
       </BrowserRouter>

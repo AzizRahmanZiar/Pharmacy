@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { FaUndo } from 'react-icons/fa';
 import { NavLink, Outlet } from 'react-router-dom';
 import { FiMenu, FiX, FiLogOut } from 'react-icons/fi';
 import { MdDashboard, MdLocalPharmacy, MdMoneyOff } from 'react-icons/md';
@@ -43,6 +44,11 @@ export default function Layout() {
       to: '/expense',
       icon: MdMoneyOff,
       label: 'Expense',
+    },
+    {
+      to: '/return',
+      icon: FaUndo,
+      label: 'Return',
     },
   ];
 
