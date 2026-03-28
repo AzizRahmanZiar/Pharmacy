@@ -3,7 +3,7 @@ import { FiPlus } from 'react-icons/fi';
 import api from '../../api';
 import { LoadingSpinner } from '../../components/LoadingSpinner';
 import { SearchInput } from '../../components/SearchInput';
-import { ItemsTable } from '../../components/ItemsTable';
+import { ItemsTable } from './components/ItemsTable';
 import { TablePagination } from '../../components/TablePagination';
 import { ItemForm } from './components/ItemForm';
 import { DeleteConfirmModal } from '../../components/DeleteConfirmModal';

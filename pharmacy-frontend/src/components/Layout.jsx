@@ -45,11 +45,6 @@ export default function Layout() {
       icon: MdMoneyOff,
       label: 'Expense',
     },
-    {
-      to: '/return',
-      icon: FaUndo,
-      label: 'Return',
-    },
   ];
 
   return (
