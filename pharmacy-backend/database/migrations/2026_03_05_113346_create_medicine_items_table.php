@@ -13,10 +13,11 @@ return new class extends Migration
     {
         Schema::create('medicine_items', function (Blueprint $table) {
         $table->id();
-        $table->string('name');
-        $table->string('generic_name')->nullable();
-        $table->string('company')->nullable();
-        $table->string('family')->nullable();
+        $table->string('g_name');
+        $table->string('b_name');
+        $table->string('d_form');
+        $table->string('strength');
+        $table->string('route');
         $table->timestamps();
 });
     }

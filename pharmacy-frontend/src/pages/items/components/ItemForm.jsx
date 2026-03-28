@@ -16,34 +16,42 @@ export function ItemForm({
       <form onSubmit={onSubmit} className='space-y-4'>
         <input
           type='text'
-          name='name'
-          placeholder='Medicine Name *'
-          value={formData.name}
+          name='g_name'
+          placeholder='Generic name'
+          value={formData.g_name}
           onChange={onChange}
           className='w-full rounded-lg border border-gray-200 bg-gray-50 px-4 py-2 text-gray-700 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-200'
           required
         />
         <input
           type='text'
-          name='generic_name'
-          placeholder='Generic Name'
-          value={formData.generic_name}
+          name='b_name'
+          placeholder='Brand Name'
+          value={formData.b_name}
           onChange={onChange}
           className='w-full rounded-lg border border-gray-200 bg-gray-50 px-4 py-2 text-gray-700 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-200'
         />
         <input
           type='text'
-          name='company'
-          placeholder='Company'
-          value={formData.company}
+          name='d_form'
+          placeholder='Dosage form'
+          value={formData.d_form}
           onChange={onChange}
           className='w-full rounded-lg border border-gray-200 bg-gray-50 px-4 py-2 text-gray-700 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-200'
         />
         <input
           type='text'
-          name='family'
-          placeholder='Family'
-          value={formData.family}
+          name='strength'
+          placeholder='Strength'
+          value={formData.strength}
+          onChange={onChange}
+          className='w-full rounded-lg border border-gray-200 bg-gray-50 px-4 py-2 text-gray-700 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-200'
+        />
+        <input
+          type='text'
+          name='route'
+          placeholder='Route of administration'
+          value={formData.route}
           onChange={onChange}
           className='w-full rounded-lg border border-gray-200 bg-gray-50 px-4 py-2 text-gray-700 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-200'
         />

@@ -10,16 +10,19 @@ export function ItemsTable({ items, currentPage, perPage, onEdit, onDelete }) {
               ID
             </th>
             <th className='px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500'>
-              Name
+              G name
             </th>
             <th className='px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500'>
-              Generic
+              B name
             </th>
             <th className='px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500'>
-              Company
+              D form
             </th>
             <th className='px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500'>
-              Family
+              Strength
+            </th>
+            <th className='px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500'>
+              Route
             </th>
             <th className='px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500'>
               Actions
@@ -33,16 +36,19 @@ export function ItemsTable({ items, currentPage, perPage, onEdit, onDelete }) {
                 {(currentPage - 1) * perPage + index + 1}
               </td>
               <td className='whitespace-nowrap px-4 py-3 text-sm font-medium text-gray-800'>
-                {item.name}
+                {item.g_name}
               </td>
               <td className='whitespace-nowrap px-4 py-3 text-sm text-gray-600'>
-                {item.generic_name || '—'}
+                {item.b_name || '—'}
               </td>
               <td className='whitespace-nowrap px-4 py-3 text-sm text-gray-600'>
-                {item.company || '—'}
+                {item.d_form || '—'}
               </td>
               <td className='whitespace-nowrap px-4 py-3 text-sm text-gray-600'>
-                {item.family || '—'}
+                {item.strength || '—'}
+              </td>
+              <td className='whitespace-nowrap px-4 py-3 text-sm text-gray-600'>
+                {item.route || '—'}
               </td>
               <td className='whitespace-nowrap px-4 py-3 text-right text-sm'>
                 <button

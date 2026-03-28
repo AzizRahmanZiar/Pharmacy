@@ -8,10 +8,11 @@ class MedicineItem extends Model
 {
     protected $fillable = [
         'user_id',
-        'name',
-        'generic_name',
-        'company',
-        'family'
+        'g_name',
+        'b_name',
+        'd_form',
+        'strength',
+        'route'
     ];
 
 }

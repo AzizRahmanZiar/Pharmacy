@@ -15,18 +15,20 @@ class MedicineItemController extends Controller{
 
     public function store(Request $request){
         $request->validate([
-            'name' => 'required|string|max:255',
-            'generic_name' => 'nullable|string|max:255',
-            'company' => 'nullable|string|max:255',
-            'family' => 'nullable|string|max:255',
+            'g_name' => 'required|string|max:255',
+            'b_name' => 'required|string|max:255',
+            'd_form' => 'required|string|max:255',
+            'strength' => 'required|string|max:255',
+             'route' => 'required|string|max:255',
         ]);
 
         $item = MedicineItem::create([
             'user_id' => Auth::id(),
-            'name' => $request->name,
-            'generic_name' => $request->generic_name,
-            'company' => $request->company,
-            'family' => $request->family,
+            'g_name' => $request->g_name,
+            'b_name' => $request->b_name,
+            'd_form' => $request->d_form,
+            'strength' => $request->strength,
+            'route' => $request->route,
         ]);
 
         return response()->json($item, 201);
@@ -44,10 +46,11 @@ class MedicineItemController extends Controller{
     $item = MedicineItem::where('user_id', Auth::id())->findOrFail($id);
 
     $item->update([
-        'name' => $request->name,
-        'generic_name' => $request->generic_name,
-        'company' => $request->company,
-        'family' => $request->family,
+        'g_name' => $request->g_name,
+        'b_name' => $request->b_name,
+        'd_form' => $request->d_form,
+        'strength' => $request->strength,
+        'route' => $request->route,
     ]);
 
     return response()->json($item);
