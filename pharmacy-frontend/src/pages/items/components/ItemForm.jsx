@@ -1,6 +1,6 @@
-import { Modal } from './Modal';
+import { Modal } from '../../../components/Modal';
 
-export function ItemFormModal({
+export function ItemForm({
   isOpen,
   onClose,
   onSubmit,
