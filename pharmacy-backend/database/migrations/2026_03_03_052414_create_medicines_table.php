@@ -13,11 +13,12 @@ public function up()
 {
     Schema::create('medicines', function (Blueprint $table) {
         $table->id();
-        $table->string('name');
         $table->integer('quantity')->default(0);
-        $table->string('generic_name')->nullable();
-        $table->string('company')->nullable();
-        $table->string('family')->nullable();
+        $table->string('generic');
+        $table->string('brand');
+        $table->string('dosage');
+        $table->string('strength');
+        $table->string('route');
         $table->decimal('buy_price',10,2)->default(0);
         $table->decimal('total_buyer_price',10,2)->default(0);
         $table->decimal('sale_price',10,2)->default(0);

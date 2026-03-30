@@ -27,17 +27,19 @@ export default function ItemsPage() {
 
   // Forms
   const [createForm, setCreateForm] = useState({
-    name: '',
-    generic_name: '',
-    company: '',
-    family: '',
+    generic: '',
+    brand: '',
+    dosage: '',
+    strength: '',
+    route: '',
   });
   const [editForm, setEditForm] = useState({
     id: null,
-    name: '',
-    generic_name: '',
-    company: '',
-    family: '',
+    generic: '',
+    brand: '',
+    dosage: '',
+    strength: '',
+    route: '',
   });
 
   // Load items
@@ -67,10 +69,11 @@ export default function ItemsPage() {
     return items.filter((item) => {
       const searchable = [
         item.id,
-        item.name,
-        item.generic_name,
-        item.company,
-        item.family,
+        item.generic,
+        item.brand,
+        item.dosage,
+        item.strength,
+        item.route,
       ]
         .map((field) => String(field ?? '').toLowerCase())
         .join(' ');
@@ -87,7 +90,13 @@ export default function ItemsPage() {
     e.preventDefault();
     try {
       await api.post('/items', createForm);
-      setCreateForm({ name: '', generic_name: '', company: '', family: '' });
+      setCreateForm({
+        generic: '',
+        brand: '',
+        dosage: '',
+        strength: '',
+        route: '',
+      });
       setIsCreateModalOpen(false);
       loadItems(currentPage);
     } catch (error) {
@@ -99,10 +108,11 @@ export default function ItemsPage() {
   const handleEditClick = (item) => {
     setEditForm({
       id: item.id,
-      name: item.name,
-      generic_name: item.generic_name,
-      company: item.company,
-      family: item.family,
+      generic: item.generic,
+      brand: item.brand,
+      dosage: item.dosage,
+      strength: item.strength,
+      route: item.route,
     });
     setIsEditModalOpen(true);
   };
@@ -117,10 +127,11 @@ export default function ItemsPage() {
       await api.put(`/items/${editForm.id}`, editForm);
       setEditForm({
         id: null,
-        name: '',
-        generic_name: '',
-        company: '',
-        family: '',
+        generic: '',
+        brand: '',
+        dosage: '',
+        strength: '',
+        route: '',
       });
       setIsEditModalOpen(false);
       loadItems(currentPage);

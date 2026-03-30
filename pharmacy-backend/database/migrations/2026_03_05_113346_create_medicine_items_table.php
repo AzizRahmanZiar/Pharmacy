@@ -13,9 +13,9 @@ return new class extends Migration
     {
         Schema::create('medicine_items', function (Blueprint $table) {
         $table->id();
-        $table->string('g_name');
-        $table->string('b_name');
-        $table->string('d_form');
+        $table->string('generic');
+        $table->string('brand');
+        $table->string('dosage');
         $table->string('strength');
         $table->string('route');
         $table->timestamps();

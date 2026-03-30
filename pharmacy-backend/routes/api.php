@@ -9,7 +9,7 @@ use App\Http\Controllers\PurchaseController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SaleController;
 use App\Http\Controllers\Api\AuthController;
-
+use App\Http\Controllers\TransactionController;
 
 Route::middleware('auth:sanctum')->get('/dashboard', [DashboardController::class, 'index']);
 
@@ -29,7 +29,7 @@ Route::middleware('auth:sanctum')->prefix('purchases')->group(function () {
     Route::put('/{id}', [PurchaseController::class,'update']);
     Route::delete('/{id}', [PurchaseController::class,'destroy']);
 });
-Route::middleware('auth:sanctum')->get('/purchase-form-data', [PurchaseController::class, 'formData']);
+Route::middleware('auth:sanctum')->get('/formData', [PurchaseController::class, 'formData']);
 
 Route::middleware('auth:sanctum')->prefix('sales')->group(function () {
     Route::get('/', [SaleController::class,'index']);
@@ -66,3 +66,6 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('/user', [AuthController::class, 'user'])->middleware('auth:sanctum');
 });
+
+
+Route::middleware('auth:sanctum')->get('/transactions', [TransactionController::class, 'index']);

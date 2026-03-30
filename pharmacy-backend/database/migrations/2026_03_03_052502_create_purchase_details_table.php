@@ -15,10 +15,11 @@ public function up(): void
 
     $table->integer('quantity');
 
-    $table->string('name');
-    $table->string('generic_name');
-    $table->string('company');
-    $table->string('family');
+        $table->string('generic');
+        $table->string('brand');
+        $table->string('dosage');
+        $table->string('strength');
+        $table->string('route');
 
     $table->decimal('buy_price',10,2);
     $table->decimal('sale_price',10,2);

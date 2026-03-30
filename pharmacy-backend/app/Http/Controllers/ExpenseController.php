@@ -12,7 +12,7 @@ class ExpenseController extends Controller
 {
     $expense = Expense::where('user_id', Auth::id())
         ->latest()
-        ->paginate(4);
+        ->paginate(3);
 
     return response()->json($expense);
 }

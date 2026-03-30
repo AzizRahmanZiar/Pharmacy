@@ -6,20 +6,9 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 
-class AuthController extends Controller
-{
+class AuthController extends Controller{
 
-    // // ✅ GET AUTH USER
-    // public function user(Request $request)
-    // {
-    //     return response()->json([
-    //         'user' => $request->user()
-    //     ]);
-    // }
-
-
-    public function user(Request $request)
-{
+    public function user(Request $request){
     if (!$request->user()) {
         return response()->json([
             'message' => 'Unauthenticated'
@@ -31,13 +20,11 @@ class AuthController extends Controller
     ]);
 }
 
-    // ✅ REGISTER
-    public function register(Request $request)
-    {
+    public function register(Request $request){
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users',
-            'password' => 'required|min:6'
+            'password' => 'required|min:8'
         ]);
 
         $user = User::create([
@@ -55,9 +42,7 @@ class AuthController extends Controller
         ]);
     }
 
-    // ✅ LOGIN
-    public function login(Request $request)
-    {
+    public function login(Request $request){
         $request->validate([
             'email' => 'required|email',
             'password' => 'required'
@@ -80,9 +65,7 @@ class AuthController extends Controller
         ]);
     }
 
-    // ✅ LOGOUT
-    public function logout(Request $request)
-    {
+    public function logout(Request $request){
         $request->user()->currentAccessToken()->delete();
 
         return response()->json([

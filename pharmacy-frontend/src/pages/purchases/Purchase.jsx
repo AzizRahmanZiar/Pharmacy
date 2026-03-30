@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import { useEffect, useState, useMemo } from 'react';
 import { FiPlus } from 'react-icons/fi';
 import api from '../../api';
@@ -40,11 +41,12 @@ export default function Purchase() {
     paid_amount: 0,
     medicines: [
       {
-        quantity: '',
-        name: '',
-        generic_name: '',
-        company: '',
-        family: '',
+        generic: '',
+        brand: '',
+        dosage: '',
+        strength: '',
+        route: '',
+        quantity: 1,
         buy_price: '',
         sale_price: '',
         expiry_date: '',
@@ -53,10 +55,11 @@ export default function Purchase() {
   });
 
   // Dropdown data
-  const [names, setNames] = useState([]);
-  const [generics, setGenerics] = useState([]);
-  const [companies, setCompanies] = useState([]);
-  const [families, setFamilies] = useState([]);
+  const [generic, setGeneric] = useState([]);
+  const [brand, setBrand] = useState([]);
+  const [dosage, setDosage] = useState([]);
+  const [strength, setStrength] = useState([]);
+  const [route, setRoute] = useState([]);
 
   // Lock body scroll when any modal is open
   useEffect(() => {
@@ -100,11 +103,12 @@ export default function Purchase() {
 
   const fetchDropdownData = async () => {
     try {
-      const res = await api.get('/purchase-form-data');
-      setNames(res.data.names);
-      setGenerics(res.data.generics);
-      setCompanies(res.data.companies);
-      setFamilies(res.data.families);
+      const res = await api.get('/formData');
+      setGeneric(res.data.generic);
+      setBrand(res.data.brand);
+      setDosage(res.data.dosage);
+      setStrength(res.data.strength);
+      setRoute(res.data.route);
     } catch (error) {
       console.error(error);
     }
@@ -117,11 +121,12 @@ export default function Purchase() {
       medicines: [
         ...form.medicines,
         {
-          quantity: '',
-          name: '',
-          generic_name: '',
-          company: '',
-          family: '',
+          generic: '',
+          brand: '',
+          dosage: '',
+          strength: '',
+          route: '',
+          quantity: 1,
           buy_price: '',
           sale_price: '',
           expiry_date: '',
@@ -154,10 +159,11 @@ export default function Purchase() {
       medicines: [
         {
           quantity: '',
-          name: '',
-          generic_name: '',
-          company: '',
-          family: '',
+          generic: '',
+          brand: '',
+          dosage: '',
+          strength: '',
+          route: '',
           buy_price: '',
           sale_price: '',
           expiry_date: '',
@@ -191,10 +197,11 @@ export default function Purchase() {
         paid_amount: data.paid_amount ?? 0,
         medicines: data.details.map((d) => ({
           quantity: d.quantity,
-          name: d.name,
-          generic_name: d.generic_name,
-          company: d.company,
-          family: d.family,
+          generic: d.generic,
+          brand: d.brand,
+          dosage: d.dosage,
+          strength: d.strength,
+          route: d.route,
           buy_price: d.buy_price,
           sale_price: d.sale_price,
           expiry_date: d.expiry_date,
@@ -368,10 +375,11 @@ export default function Purchase() {
           <PurchaseForm
             form={form}
             setForm={setForm}
-            names={names}
-            generics={generics}
-            companies={companies}
-            families={families}
+            generic={generic}
+            brand={brand}
+            dosage={dosage}
+            strength={strength} // ✅ correct
+            route={route} // ✅ correct
             addRow={addRow}
             removeRow={removeRow}
             changeMedicine={changeMedicine}
@@ -388,10 +396,11 @@ export default function Purchase() {
           <PurchaseForm
             form={form}
             setForm={setForm}
-            names={names}
-            generics={generics}
-            companies={companies}
-            families={families}
+            generic={generic}
+            brand={brand}
+            dosage={dosage}
+            strength={strength} // ✅ correct
+            route={route} // ✅ correct
             addRow={addRow}
             removeRow={removeRow}
             changeMedicine={changeMedicine}

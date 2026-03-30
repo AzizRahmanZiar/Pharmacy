@@ -14,7 +14,7 @@ export function NearExpiryModal({ items, onClose, formatDate }) {
             <thead className='bg-gray-50'>
               <tr>
                 <th className='px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500'>
-                  Name
+                  Generic
                 </th>
                 <th className='px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500'>
                   Expiry Date
@@ -28,7 +28,7 @@ export function NearExpiryModal({ items, onClose, formatDate }) {
               {items.map((item) => (
                 <tr key={item.id} className='hover:bg-gray-50'>
                   <td className='whitespace-nowrap px-4 py-3 text-sm text-gray-900'>
-                    {item.name}
+                    {item.generic}
                   </td>
                   <td className='whitespace-nowrap px-4 py-3 text-sm text-gray-600'>
                     {formatDate(item.expiry_date)}

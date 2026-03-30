@@ -76,16 +76,19 @@ export function SaleDetail({ sale }) {
           <thead className='bg-gray-50'>
             <tr>
               <th className='px-3 py-2 text-left text-xs font-medium uppercase tracking-wider text-gray-500'>
-                Medicine
-              </th>
-              <th className='px-3 py-2 text-left text-xs font-medium uppercase tracking-wider text-gray-500'>
                 Generic
               </th>
               <th className='px-3 py-2 text-left text-xs font-medium uppercase tracking-wider text-gray-500'>
-                Company
+                Brand
               </th>
               <th className='px-3 py-2 text-left text-xs font-medium uppercase tracking-wider text-gray-500'>
-                Family
+                Dosage
+              </th>
+              <th className='px-3 py-2 text-left text-xs font-medium uppercase tracking-wider text-gray-500'>
+                Strength
+              </th>
+              <th className='px-3 py-2 text-left text-xs font-medium uppercase tracking-wider text-gray-500'>
+                Route
               </th>
               <th className='px-3 py-2 text-left text-xs font-medium uppercase tracking-wider text-gray-500'>
                 Quantity
@@ -96,16 +99,19 @@ export function SaleDetail({ sale }) {
             {sale.details.map((detail, idx) => (
               <tr key={idx} className='hover:bg-gray-50'>
                 <td className='whitespace-nowrap px-3 py-2 text-sm text-gray-800'>
-                  {detail.medicine.name}
+                  {detail.medicine.generic}
                 </td>
                 <td className='whitespace-nowrap px-3 py-2 text-sm text-gray-600'>
-                  {detail.medicine.generic_name}
+                  {detail.medicine.brand}
                 </td>
                 <td className='whitespace-nowrap px-3 py-2 text-sm text-gray-600'>
-                  {detail.medicine.company}
+                  {detail.medicine.dosage}
                 </td>
                 <td className='whitespace-nowrap px-3 py-2 text-sm text-gray-600'>
-                  {detail.medicine.family}
+                  {detail.medicine.strength}
+                </td>
+                <td className='whitespace-nowrap px-3 py-2 text-sm text-gray-600'>
+                  {detail.medicine.route}
                 </td>
                 <td className='whitespace-nowrap px-3 py-2 text-sm text-gray-600'>
                   {detail.quantity}

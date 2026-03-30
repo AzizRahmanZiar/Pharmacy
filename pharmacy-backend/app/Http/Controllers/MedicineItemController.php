@@ -10,23 +10,23 @@ class MedicineItemController extends Controller{
 
 
     public function index() {
-    return response()->json(MedicineItem::where('user_id', Auth::id())->paginate(4));
+    return response()->json(MedicineItem::where('user_id', Auth::id())->paginate(3));
     }
 
     public function store(Request $request){
         $request->validate([
-            'g_name' => 'required|string|max:255',
-            'b_name' => 'required|string|max:255',
-            'd_form' => 'required|string|max:255',
+            'generic' => 'required|string|max:255',
+            'brand' => 'required|string|max:255',
+            'dosage' => 'required|string|max:255',
             'strength' => 'required|string|max:255',
              'route' => 'required|string|max:255',
         ]);
 
         $item = MedicineItem::create([
             'user_id' => Auth::id(),
-            'g_name' => $request->g_name,
-            'b_name' => $request->b_name,
-            'd_form' => $request->d_form,
+            'generic' => $request->generic,
+            'brand' => $request->brand,
+            'dosage' => $request->dosage,
             'strength' => $request->strength,
             'route' => $request->route,
         ]);
@@ -46,9 +46,9 @@ class MedicineItemController extends Controller{
     $item = MedicineItem::where('user_id', Auth::id())->findOrFail($id);
 
     $item->update([
-        'g_name' => $request->g_name,
-        'b_name' => $request->b_name,
-        'd_form' => $request->d_form,
+        'generic' => $request->generic,
+        'brand' => $request->brand,
+        'dosage' => $request->dosage,
         'strength' => $request->strength,
         'route' => $request->route,
     ]);

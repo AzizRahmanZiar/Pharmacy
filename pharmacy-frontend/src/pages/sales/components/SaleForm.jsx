@@ -186,16 +186,19 @@ export function SaleForm({
             <thead className='bg-gray-50'>
               <tr>
                 <th className='px-3 py-2 text-left text-xs font-medium uppercase tracking-wider text-gray-500'>
-                  Name
-                </th>
-                <th className='px-3 py-2 text-left text-xs font-medium uppercase tracking-wider text-gray-500'>
                   Generic
                 </th>
                 <th className='px-3 py-2 text-left text-xs font-medium uppercase tracking-wider text-gray-500'>
-                  Company
+                  Brand
                 </th>
                 <th className='px-3 py-2 text-left text-xs font-medium uppercase tracking-wider text-gray-500'>
-                  Family
+                  Dosage
+                </th>
+                <th className='px-3 py-2 text-left text-xs font-medium uppercase tracking-wider text-gray-500'>
+                  Strength
+                </th>
+                <th className='px-3 py-2 text-left text-xs font-medium uppercase tracking-wider text-gray-500'>
+                  Route
                 </th>
                 <th className='px-3 py-2 text-left text-xs font-medium uppercase tracking-wider text-gray-500'>
                   Quantity
@@ -235,7 +238,7 @@ export function SaleForm({
                         <option value=''>Select</option>
                         {availableMedicines.map((med) => (
                           <option key={med.id} value={med.id}>
-                            {med.name}
+                            {med.generic}
                           </option>
                         ))}
                       </select>
@@ -257,7 +260,7 @@ export function SaleForm({
                         <option value=''>Select</option>
                         {availableMedicines.map((med) => (
                           <option key={med.id} value={med.id}>
-                            {med.generic_name}
+                            {med.brand}
                           </option>
                         ))}
                       </select>
@@ -274,7 +277,7 @@ export function SaleForm({
                         <option value=''>Select</option>
                         {availableMedicines.map((med) => (
                           <option key={med.id} value={med.id}>
-                            {med.company}
+                            {med.dosage}
                           </option>
                         ))}
                       </select>
@@ -291,11 +294,28 @@ export function SaleForm({
                         <option value=''>Select</option>
                         {availableMedicines.map((med) => (
                           <option key={med.id} value={med.id}>
-                            {med.family}
+                            {med.strength}
                           </option>
                         ))}
                       </select>
                     </td>
+                    <td className='px-3 py-2'>
+                      <select
+                        value={row.medicine_id}
+                        onChange={(e) =>
+                          onSelectMedicine(index, e.target.value)
+                        }
+                        className='w-32 rounded-lg border border-gray-200 bg-gray-50 px-2 py-1 text-sm text-gray-700 focus:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-200'
+                      >
+                        <option value=''>Select</option>
+                        {availableMedicines.map((med) => (
+                          <option key={med.id} value={med.id}>
+                            {med.route}
+                          </option>
+                        ))}
+                      </select>
+                    </td>
+
                     {/* Quantity with remaining indicator */}
                     <td className='px-3 py-2'>
                       <div>

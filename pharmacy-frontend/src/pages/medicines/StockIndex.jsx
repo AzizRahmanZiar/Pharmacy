@@ -4,7 +4,7 @@ import api from '../../api';
 import { LoadingSpinner } from '../../components/LoadingSpinner';
 import { SearchInput } from '../../components/SearchInput';
 import { TablePagination } from '../../components/TablePagination';
-import { StockTable } from '../../components/StockTable';
+import { StockTable } from './components/StockTable';
 
 export default function StockList() {
   const [medicines, setMedicines] = useState([]);
@@ -40,10 +40,11 @@ export default function StockList() {
     return medicines.filter((med) => {
       const searchable = [
         med.id,
-        med.name,
-        med.generic_name,
-        med.company,
-        med.family,
+        med.generic,
+        med.brand,
+        med.dosage,
+        med.strength,
+        med.route,
         med.buy_price,
         med.sale_price,
         med.quantity,

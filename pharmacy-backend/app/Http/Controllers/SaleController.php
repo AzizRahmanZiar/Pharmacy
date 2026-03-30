@@ -16,7 +16,7 @@ public function index(Request $request)
         $query->where('payment_status', $request->status);
     }
 
-    $sales = $query->paginate(4);
+    $sales = $query->paginate(3);
 
     return response()->json($sales);
 }

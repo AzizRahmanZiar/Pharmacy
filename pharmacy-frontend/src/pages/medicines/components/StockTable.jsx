@@ -22,10 +22,11 @@ export function StockTable({ medicines, currentPage, perPage }) {
 
   const columns = [
     { key: 'id', label: 'ID' },
-    { key: 'name', label: 'Name' },
-    { key: 'generic_name', label: 'Generic Name' },
-    { key: 'company', label: 'Company' },
-    { key: 'family', label: 'Family' },
+    { key: 'generic', label: 'Generic' },
+    { key: 'brand', label: 'Brand' },
+    { key: 'dosage', label: 'Dosage' },
+    { key: 'strength', label: 'Strength' },
+    { key: 'route', label: 'Route' },
     { key: 'buy_price', label: 'Buy Price' },
     { key: 'sale_price', label: 'Sale Price' },
     { key: 'quantity', label: 'Stock' },
@@ -54,16 +55,19 @@ export function StockTable({ medicines, currentPage, perPage }) {
                 {(currentPage - 1) * perPage + index + 1}
               </td>
               <td className='whitespace-nowrap px-4 py-3 text-sm text-gray-800'>
-                {med.name}
+                {med.generic}
               </td>
               <td className='whitespace-nowrap px-4 py-3 text-sm text-gray-600'>
-                {med.generic_name || '—'}
+                {med.brand || '—'}
               </td>
               <td className='whitespace-nowrap px-4 py-3 text-sm text-gray-600'>
-                {med.company || '—'}
+                {med.dosage || '—'}
               </td>
               <td className='whitespace-nowrap px-4 py-3 text-sm text-gray-600'>
-                {med.family || '—'}
+                {med.strength || '—'}
+              </td>
+              <td className='whitespace-nowrap px-4 py-3 text-sm text-gray-600'>
+                {med.route || '—'}
               </td>
               <td className='whitespace-nowrap px-4 py-3 text-sm text-gray-800'>
                 {formatCurrency(med.buy_price)}

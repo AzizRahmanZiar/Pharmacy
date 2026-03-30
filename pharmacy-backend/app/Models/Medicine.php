@@ -8,11 +8,12 @@ class Medicine extends Model
 {
 protected $fillable = [
     'user_id',
-    'name',
+    'generic',
+    'brand',
+    'dosage',
+    'strength',
+    'route',
     'quantity',
-    'generic_name',
-    'company',
-    'family',
     'buy_price',
     'total_buyer_price',
     'sale_price',

@@ -10,13 +10,13 @@ export function ItemsTable({ items, currentPage, perPage, onEdit, onDelete }) {
               ID
             </th>
             <th className='px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500'>
-              G name
+              Generic
             </th>
             <th className='px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500'>
-              B name
+              Brand
             </th>
             <th className='px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500'>
-              D form
+              Dosage
             </th>
             <th className='px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500'>
               Strength
@@ -36,13 +36,13 @@ export function ItemsTable({ items, currentPage, perPage, onEdit, onDelete }) {
                 {(currentPage - 1) * perPage + index + 1}
               </td>
               <td className='whitespace-nowrap px-4 py-3 text-sm font-medium text-gray-800'>
-                {item.g_name}
+                {item.generic}
               </td>
               <td className='whitespace-nowrap px-4 py-3 text-sm text-gray-600'>
-                {item.b_name || '—'}
+                {item.brand || '—'}
               </td>
               <td className='whitespace-nowrap px-4 py-3 text-sm text-gray-600'>
-                {item.d_form || '—'}
+                {item.dosage || '—'}
               </td>
               <td className='whitespace-nowrap px-4 py-3 text-sm text-gray-600'>
                 {item.strength || '—'}

@@ -44,7 +44,7 @@ class DashboardController extends Controller
                 Carbon::today()->addDays(45)
             ])
             ->orderBy('expiry_date')
-            ->get(['id', 'name', 'expiry_date', 'quantity as stock_quantity']);
+            ->get(['id', 'generic', 'expiry_date', 'quantity as stock_quantity']);
 
         return response()->json([
             'totalPurchases' => $totalPurchases,

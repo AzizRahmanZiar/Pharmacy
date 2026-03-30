@@ -3,10 +3,11 @@ import { FiPlus, FiTrash2 } from 'react-icons/fi';
 export function PurchaseForm({
   form,
   setForm,
-  names,
-  generics,
-  companies,
-  families,
+  generic = [],
+  brand = [],
+  dosage = [],
+  strength = [],
+  route = [],
   addRow,
   removeRow,
   changeMedicine,
@@ -15,8 +16,11 @@ export function PurchaseForm({
   onCancel,
 }) {
   // Calculate total amount from medicines
-  const totalAmount = form.medicines.reduce(
-    (sum, med) => sum + (Number(med.quantity) * Number(med.buy_price) || 0),
+
+  const medicines = form?.medicines || [];
+
+  const totalAmount = medicines.reduce(
+    (sum, med) => sum + Number(med.quantity || 0) * Number(med.buy_price || 0),
     0,
   );
 
@@ -82,16 +86,19 @@ export function PurchaseForm({
                   Qty
                 </th>
                 <th className='px-3 py-2 text-left text-xs font-medium uppercase tracking-wider text-gray-500'>
-                  Name
-                </th>
-                <th className='px-3 py-2 text-left text-xs font-medium uppercase tracking-wider text-gray-500'>
                   Generic
                 </th>
                 <th className='px-3 py-2 text-left text-xs font-medium uppercase tracking-wider text-gray-500'>
-                  Company
+                  Brand
                 </th>
                 <th className='px-3 py-2 text-left text-xs font-medium uppercase tracking-wider text-gray-500'>
-                  Family
+                  Form
+                </th>
+                <th className='px-3 py-2 text-left text-xs font-medium uppercase tracking-wider text-gray-500'>
+                  Strength
+                </th>
+                <th className='px-3 py-2 text-left text-xs font-medium uppercase tracking-wider text-gray-500'>
+                  Route
                 </th>
                 <th className='px-3 py-2 text-left text-xs font-medium uppercase tracking-wider text-gray-500'>
                   Buy Price
@@ -108,81 +115,105 @@ export function PurchaseForm({
               </tr>
             </thead>
             <tbody className='divide-y divide-gray-200 bg-white'>
-              {form.medicines.map((med, index) => (
+              {(form.medicines || []).map((med, index) => (
                 <tr key={index} className='hover:bg-gray-50'>
-                  <td className='px-3 py-2'>
+                  <td>
                     <input
                       type='number'
-                      value={med.quantity}
-                      placeholder='90...'
+                      min='1'
+                      value={med.quantity || ''}
                       onChange={(e) =>
                         changeMedicine(index, 'quantity', e.target.value)
                       }
-                      className='w-20 rounded-lg border border-gray-200 bg-gray-50 px-2 py-1 text-black text-sm focus:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-200'
+                      className='w-24 rounded-lg border border-gray-200 bg-gray-50 px-2 py-1 text-sm focus:border-indigo-400 text-black focus:outline-none focus:ring-1 focus:ring-indigo-200'
                       required
                     />
                   </td>
-                  <td className='px-3 py-2'>
+                  <td>
                     <select
-                      value={med.name}
+                      value={med.generic}
                       onChange={(e) =>
-                        changeMedicine(index, 'name', e.target.value)
+                        changeMedicine(index, 'generic', e.target.value)
                       }
-                      className='w-32 rounded-lg border border-gray-200 bg-gray-50 text-black px-2 py-1 text-sm focus:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-200 z-50'
+                      className='w-32 rounded-lg border border-gray-200 bg-gray-50 text-black px-2 py-1 text-sm'
                       required
                     >
                       <option value=''>Select</option>
-                      {names.map((n, i) => (
-                        <option key={i} value={n.name}>
-                          {n.name}
+                      {generic.map((g, i) => (
+                        <option key={i} value={g.generic}>
+                          {g.generic}
                         </option>
                       ))}
                     </select>
                   </td>
-                  <td className='px-3 py-2'>
+
+                  <td>
                     <select
-                      value={med.generic_name}
+                      value={med.brand}
                       onChange={(e) =>
-                        changeMedicine(index, 'generic_name', e.target.value)
+                        changeMedicine(index, 'brand', e.target.value)
                       }
-                      className='w-32 rounded-lg border border-gray-200 bg-gray-50 px-2 py-1 text-sm focus:border-indigo-400 text-black focus:outline-none focus:ring-1 focus:ring-indigo-200 z-50'
+                      className='w-32 rounded-lg border border-gray-200 bg-gray-50 text-black px-2 py-1 text-sm'
+                      required
                     >
                       <option value=''>Select</option>
-                      {generics.map((g, i) => (
-                        <option key={i} value={g.generic_name}>
-                          {g.generic_name}
+                      {brand.map((b, i) => (
+                        <option key={i} value={b.brand}>
+                          {b.brand}
                         </option>
                       ))}
                     </select>
                   </td>
-                  <td className='px-3 py-2'>
+
+                  <td>
                     <select
-                      value={med.company}
+                      value={med.dosage}
                       onChange={(e) =>
-                        changeMedicine(index, 'company', e.target.value)
+                        changeMedicine(index, 'dosage', e.target.value)
                       }
-                      className='w-32 rounded-lg border border-gray-200 bg-gray-50 px-2 py-1 text-sm focus:border-indigo-400 text-black focus:outline-none focus:ring-1 focus:ring-indigo-200 z-50'
+                      className='w-32 rounded-lg border border-gray-200 bg-gray-50 text-black px-2 py-1 text-sm'
+                      required
                     >
                       <option value=''>Select</option>
-                      {companies.map((c, i) => (
-                        <option key={i} value={c.company}>
-                          {c.company}
+                      {dosage.map((d, i) => (
+                        <option key={i} value={d.dosage}>
+                          {d.dosage}
                         </option>
                       ))}
                     </select>
                   </td>
-                  <td className='px-3 py-2'>
+
+                  <td>
                     <select
-                      value={med.family}
+                      value={med.strength}
                       onChange={(e) =>
-                        changeMedicine(index, 'family', e.target.value)
+                        changeMedicine(index, 'strength', e.target.value)
                       }
-                      className='w-32 rounded-lg border border-gray-200 bg-gray-50 px-2 py-1 text-sm focus:border-indigo-400 text-black focus:outline-none focus:ring-1 focus:ring-indigo-200 z-50'
+                      className='w-32 rounded-lg border border-gray-200 bg-gray-50 text-black px-2 py-1 text-sm'
+                      required
                     >
                       <option value=''>Select</option>
-                      {families.map((f, i) => (
-                        <option key={i} value={f.family}>
-                          {f.family}
+                      {strength.map((s, i) => (
+                        <option key={i} value={s.strength}>
+                          {s.strength}
+                        </option>
+                      ))}
+                    </select>
+                  </td>
+
+                  <td>
+                    <select
+                      value={med.route}
+                      onChange={(e) =>
+                        changeMedicine(index, 'route', e.target.value)
+                      }
+                      className='w-32 rounded-lg border border-gray-200 bg-gray-50 text-black px-2 py-1 text-sm'
+                      required
+                    >
+                      <option value=''>Select</option>
+                      {route.map((r, i) => (
+                        <option key={i} value={r.route}>
+                          {r.route}
                         </option>
                       ))}
                     </select>

@@ -16,26 +16,26 @@ export function ItemForm({
       <form onSubmit={onSubmit} className='space-y-4'>
         <input
           type='text'
-          name='g_name'
-          placeholder='Generic name'
-          value={formData.g_name}
+          name='generic'
+          placeholder='Generic'
+          value={formData.generic}
           onChange={onChange}
           className='w-full rounded-lg border border-gray-200 bg-gray-50 px-4 py-2 text-gray-700 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-200'
           required
         />
         <input
           type='text'
-          name='b_name'
-          placeholder='Brand Name'
-          value={formData.b_name}
+          name='brand'
+          placeholder='Brand'
+          value={formData.brand}
           onChange={onChange}
           className='w-full rounded-lg border border-gray-200 bg-gray-50 px-4 py-2 text-gray-700 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-200'
         />
         <input
           type='text'
-          name='d_form'
-          placeholder='Dosage form'
-          value={formData.d_form}
+          name='dosage'
+          placeholder='Dosage'
+          value={formData.dosage}
           onChange={onChange}
           className='w-full rounded-lg border border-gray-200 bg-gray-50 px-4 py-2 text-gray-700 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-200'
         />
