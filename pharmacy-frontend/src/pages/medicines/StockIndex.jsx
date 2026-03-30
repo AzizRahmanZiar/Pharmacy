@@ -1,4 +1,3 @@
-// src/pages/medicines/StockList.jsx
 import { useEffect, useState, useMemo } from 'react';
 import api from '../../api';
 import { LoadingSpinner } from '../../components/LoadingSpinner';

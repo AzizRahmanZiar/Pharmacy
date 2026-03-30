@@ -1,4 +1,3 @@
-// src/pages/sales/components/SaleForm.jsx
 import { FiPlus, FiTrash2 } from 'react-icons/fi';
 import { useMemo } from 'react';
 

@@ -1,4 +1,3 @@
-// src/pages/sales/Sale.jsx
 import { useEffect, useState, useMemo } from 'react';
 import { FiPlus } from 'react-icons/fi';
 import api from '../../api';

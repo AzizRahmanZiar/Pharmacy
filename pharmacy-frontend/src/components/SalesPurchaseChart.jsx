@@ -1,4 +1,3 @@
-// src/components/SalesPurchaseChart.jsx
 import {
   BarChart,
   Bar,

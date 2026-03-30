@@ -1,4 +1,3 @@
-// src/pages/sales/components/SaleDetail.jsx
 export function SaleDetail({ sale }) {
   return (
     <>

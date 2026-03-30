@@ -1,4 +1,3 @@
-// src/pages/sales/components/SaleTable.jsx
 import { FiEye, FiEdit2, FiTrash2 } from 'react-icons/fi';
 
 export function SaleTable({
