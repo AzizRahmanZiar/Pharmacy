@@ -67,7 +67,7 @@ export default function StockList() {
     <div className='space-y-6'>
       {/* Header */}
       <div className='flex flex-col sm:flex-row sm:items-center sm:justify-between'>
-        <h1 className='text-2xl font-semibold text-gray-800'>Stock List</h1>
+        <h1 className='text-2xl font-semibold text-gray-800'>Stocks</h1>
         <div className='mt-4 sm:mt-0'>
           <SearchInput
             value={searchTerm}

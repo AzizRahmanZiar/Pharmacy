@@ -57,23 +57,22 @@ export default function Layout() {
       {/* Header */}
       <header className='sticky top-0 z-20 flex h-16 items-center bg-white/80 backdrop-blur-md border-b border-gray-200/60 px-4 sm:px-6 text-gray-800 shadow-sm'>
         <div className='flex w-full items-center justify-between'>
-          <div className='flex items-center space-x-3'>
-            <button
-              onClick={toggleMobileMenu}
-              className='lg:hidden p-2 rounded-lg hover:bg-gray-100 text-gray-600'
-              aria-label='Toggle menu'
-            >
-              <FiMenu className='h-6 w-6' />
-            </button>
-            <div className='flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-purple-500 text-white shadow-md'>
-              <MdLocalPharmacy className='h-6 w-6' />
+          <div className='flex gap-25'>
+            <div className='flex items-center space-x-3'>
+              <button
+                onClick={toggleMobileMenu}
+                className='lg:hidden p-2 rounded-lg hover:bg-gray-100 text-gray-600'
+                aria-label='Toggle menu'
+              >
+                <FiMenu className='h-6 w-6' />
+              </button>
+              <div className='flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-purple-500 text-white shadow-md'>
+                <MdLocalPharmacy className='h-6 w-6' />
+              </div>
+              <h1 className='text-xl font-semibold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent'>
+                MediTrack
+              </h1>
             </div>
-            <h1 className='text-xl font-semibold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent'>
-              MediTrack
-            </h1>
-          </div>
-
-          <div className='flex items-center space-x-3'>
             <NavLink
               to='/tran'
               className={({ isActive }) =>
@@ -87,7 +86,9 @@ export default function Layout() {
               <RiExchangeDollarLine className='h-5 w-5' />
               <span className='hidden sm:inline'>Transactions</span>
             </NavLink>
+          </div>
 
+          <div className='flex items-center space-x-3'>
             <button
               ref={userButtonRef}
               onClick={openUserModal}

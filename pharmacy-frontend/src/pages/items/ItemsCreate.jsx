@@ -179,7 +179,7 @@ export default function ItemsPage() {
     <div className='space-y-6'>
       {/* Header */}
       <div className='flex flex-col sm:flex-row sm:items-center sm:justify-between'>
-        <h1 className='text-2xl font-semibold text-gray-800'>Medicine Items</h1>
+        <h1 className='text-2xl font-semibold text-gray-800'>Medicines</h1>
         <div className='mt-4 sm:mt-0 flex items-center space-x-3'>
           <span className='rounded-full bg-indigo-100 px-3 py-1 text-sm text-indigo-700'>
             {totalItems} total

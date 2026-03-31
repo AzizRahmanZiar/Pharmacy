@@ -1,6 +1,5 @@
 <?php
 
-
 namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Purchase;
@@ -148,75 +147,101 @@ class PurchaseController extends Controller
         ]);
     }
 
-    public function update(Request $request, $id)
-    {
-        $request->validate([
-            'bill_no' => 'required|string',
-            'purchase_date' => 'required|date',
-            'paid_amount' => 'nullable|numeric|min:0',
-            'medicines' => 'required|array',
+   public function update(Request $request, $id)
+{
+    $request->validate([
+        'bill_no' => 'required|string',
+        'purchase_date' => 'required|date',
+        'paid_amount' => 'nullable|numeric|min:0',
+        'medicines' => 'required|array',
 
-            'medicines.*.generic' => 'required|string|max:255',
-            'medicines.*.brand' => 'required|string|max:255',
-            'medicines.*.dosage' => 'required|string|max:255',
-            'medicines.*.strength' => 'required|string|max:255',
-            'medicines.*.route' => 'required|string|max:255',
+        'medicines.*.generic' => 'required|string|max:255',
+        'medicines.*.brand' => 'required|string|max:255',
+        'medicines.*.dosage' => 'required|string|max:255',
+        'medicines.*.strength' => 'required|string|max:255',
+        'medicines.*.route' => 'required|string|max:255',
 
-            'medicines.*.quantity' => 'required|integer|min:1',
-            'medicines.*.buy_price' => 'required|numeric|min:0',
-            'medicines.*.sale_price' => 'required|numeric|min:0',
-            'medicines.*.expiry_date' => 'nullable|date',
-        ]);
+        'medicines.*.quantity' => 'required|integer|min:1',
+        'medicines.*.buy_price' => 'required|numeric|min:0',
+        'medicines.*.sale_price' => 'required|numeric|min:0',
+        'medicines.*.expiry_date' => 'nullable|date',
+    ]);
 
-        $purchase = Purchase::where('user_id', Auth::id())
-            ->with('details')
-            ->findOrFail($id);
+    $purchase = Purchase::where('user_id', Auth::id())
+        ->with('details')
+        ->findOrFail($id);
 
-        $purchase->details()->delete();
+    // ✅ STEP 1: REVERSE OLD STOCK
+    foreach ($purchase->details as $old) {
+        $medicine = Medicine::where([
+            'user_id' => Auth::id(),
+            'generic' => $old->generic,
+            'brand' => $old->brand,
+            'dosage' => $old->dosage,
+            'strength' => $old->strength,
+            'route' => $old->route,
+            'buy_price' => $old->buy_price,
+        ])->first();
 
-        $totalAmount = 0;
-        foreach ($request->medicines as $row) {
-            $totalAmount += $row['quantity'] * $row['buy_price'];
+        if ($medicine) {
+            $medicine->quantity -= $old->quantity;
+
+            if ($medicine->quantity <= 0) {
+                $medicine->delete();
+            } else {
+                $medicine->save();
+            }
         }
+    }
 
-        $paidAmount = $request->paid_amount ?? 0;
-        $dueAmount = $totalAmount - $paidAmount;
+    // ✅ delete old details
+    $purchase->details()->delete();
 
-        $status = $paidAmount == 0 ? 'pending'
-            : ($paidAmount < $totalAmount ? 'partial' : 'paid');
+    // ✅ STEP 2: CALCULATE NEW TOTAL
+    $totalAmount = 0;
+    foreach ($request->medicines as $row) {
+        $totalAmount += $row['quantity'] * $row['buy_price'];
+    }
 
-        $purchase->update([
-            'bill_no' => $request->bill_no,
-            'purchase_date' => $request->purchase_date,
-            'total_amount' => $totalAmount,
-            'paid_amount' => $paidAmount,
-            'due_amount' => $dueAmount,
-            'payment_status' => $status,
+    $paidAmount = $request->paid_amount ?? 0;
+    $dueAmount = $totalAmount - $paidAmount;
+
+    $status = $paidAmount == 0 ? 'pending'
+        : ($paidAmount < $totalAmount ? 'partial' : 'paid');
+
+    $purchase->update([
+        'bill_no' => $request->bill_no,
+        'purchase_date' => $request->purchase_date,
+        'total_amount' => $totalAmount,
+        'paid_amount' => $paidAmount,
+        'due_amount' => $dueAmount,
+        'payment_status' => $status,
+    ]);
+
+    // ✅ STEP 3: ADD NEW STOCK
+    foreach ($request->medicines as $row) {
+
+        $totalBuyerPrice = $row['quantity'] * $row['buy_price'];
+        $profitPerUnit = $row['sale_price'] - $row['buy_price'];
+        $totalProfit = $profitPerUnit * $row['quantity'];
+
+        PurchaseDetail::create([
+            'purchase_id' => $purchase->id,
+            'generic' => $row['generic'],
+            'brand' => $row['brand'],
+            'dosage' => $row['dosage'],
+            'strength' => $row['strength'],
+            'route' => $row['route'],
+            'quantity' => $row['quantity'],
+            'buy_price' => $row['buy_price'],
+            'sale_price' => $row['sale_price'],
+            'expiry_date' => $row['expiry_date'] ?? null,
+            'total_buyer_price' => $totalBuyerPrice,
+            'profit_per_unit' => $profitPerUnit,
+            'total_profit' => $totalProfit,
         ]);
 
-        foreach ($request->medicines as $row) {
-
-            $totalBuyerPrice = $row['quantity'] * $row['buy_price'];
-            $profitPerUnit = $row['sale_price'] - $row['buy_price'];
-            $totalProfit = $profitPerUnit * $row['quantity'];
-
-            PurchaseDetail::create([
-                'purchase_id' => $purchase->id,
-                'generic' => $row['generic'],
-                'brand' => $row['brand'],
-                'dosage' => $row['dosage'],
-                'strength' => $row['strength'],
-                'route' => $row['route'],
-                'quantity' => $row['quantity'],
-                'buy_price' => $row['buy_price'],
-                'sale_price' => $row['sale_price'],
-                'expiry_date' => $row['expiry_date'] ?? null,
-                'total_buyer_price' => $totalBuyerPrice,
-                'profit_per_unit' => $profitPerUnit,
-                'total_profit' => $totalProfit,
-            ]);
-
-            $medicine = Medicine::where([
+        $medicine = Medicine::firstOrCreate([
             'user_id' => Auth::id(),
             'generic' => $row['generic'],
             'brand' => $row['brand'],
@@ -224,36 +249,58 @@ class PurchaseController extends Controller
             'strength' => $row['strength'],
             'route' => $row['route'],
             'buy_price' => $row['buy_price'],
+        ], [
+            'quantity' => 0,
+        ]);
+
+        // ✅ ADD quantity instead of overwrite
+        $medicine->quantity += $row['quantity'];
+        $medicine->sale_price = $row['sale_price'];
+        $medicine->expiry_date = $row['expiry_date'] ?? null;
+        $medicine->total_buyer_price = $totalBuyerPrice;
+        $medicine->save();
+    }
+
+    return response()->json(['success' => true]);
+}
+
+    public function destroy($id)
+{
+    $purchase = Purchase::where('user_id', Auth::id())
+        ->with('details')
+        ->findOrFail($id);
+
+    // ✅ reverse stock
+    foreach ($purchase->details as $detail) {
+        $medicine = Medicine::where([
+            'user_id' => Auth::id(),
+            'generic' => $detail->generic,
+            'brand' => $detail->brand,
+            'dosage' => $detail->dosage,
+            'strength' => $detail->strength,
+            'route' => $detail->route,
+            'buy_price' => $detail->buy_price,
         ])->first();
 
         if ($medicine) {
-            // ✅ update existing record
-            $medicine->update([
-                'quantity' => $row['quantity'],
-                'sale_price' => $row['sale_price'],
-                'expiry_date' => $row['expiry_date'] ?? null,
-                'total_buyer_price' => $totalBuyerPrice,
-            ]);
-        }
-        }
+            $medicine->quantity -= $detail->quantity;
 
-        return response()->json(['success' => true]);
+            if ($medicine->quantity <= 0) {
+                $medicine->delete();
+            } else {
+                $medicine->save();
+            }
+        }
     }
 
-    public function destroy($id)
-    {
-        $purchase = Purchase::where('user_id', Auth::id())
-            ->with('details')
-            ->findOrFail($id);
+    $purchase->details()->delete();
+    $purchase->delete();
 
-        $purchase->details()->delete();
-        $purchase->delete();
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Deleted successfully'
-        ]);
-    }
+    return response()->json([
+        'success' => true,
+        'message' => 'Deleted successfully'
+    ]);
+}
 
 
 

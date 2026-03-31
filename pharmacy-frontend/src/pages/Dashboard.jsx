@@ -67,7 +67,6 @@ export default function Dashboard() {
   return (
     <div className='overflow-x-auto modern-scrollbar'>
       <h1 className='text-3xl font-bold text-gray-800 mb-6'>Dashboard</h1>
-
       {error && (
         <div className='bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4'>
           {error}
@@ -75,6 +74,7 @@ export default function Dashboard() {
       )}
 
       {/* First row: existing metrics */}
+
       <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8'>
         {loading ? (
           <div className='col-span-full flex justify-center py-12'>

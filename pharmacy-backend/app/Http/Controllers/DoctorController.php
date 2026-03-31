@@ -12,7 +12,7 @@ class DoctorController extends Controller
     {
         $doctors = Doctor::where('user_id', Auth::id())
             ->latest()
-            ->paginate(10); // adjust pagination as needed
+            ->paginate(3); // adjust pagination as needed
 
         return response()->json($doctors);
     }

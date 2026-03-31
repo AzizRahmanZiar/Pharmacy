@@ -269,9 +269,7 @@ export default function Sale() {
   return (
     <div className='space-y-6'>
       <div className='flex flex-col sm:flex-row sm:items-center sm:justify-between'>
-        <h1 className='text-2xl font-semibold text-gray-800'>
-          Sales Management
-        </h1>
+        <h1 className='text-2xl font-semibold text-gray-800'>Sales</h1>
         <button
           onClick={() => setShowCreate(true)}
           className='mt-4 sm:mt-0 flex items-center rounded-lg bg-gradient-to-r from-indigo-600 to-purple-600 px-4 py-2 text-white shadow-md transition hover:from-indigo-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-offset-2'
@@ -301,7 +299,7 @@ export default function Sale() {
             className='flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg shadow-md hover:shadow-lg hover:scale-105 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'
           >
             <FiDownload className='w-4 h-4' />
-            Download PDF ({statusFilter === 'all' ? 'All' : statusFilter})
+            Download PDF {statusFilter === 'all' ? 'All' : statusFilter}
           </button>
         </div>
         {/* Single PDF button - respects current status filter */}
