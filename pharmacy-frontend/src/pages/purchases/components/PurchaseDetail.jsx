@@ -50,7 +50,7 @@ export function PurchaseDetail({ purchase }) {
         </p>
       </div>
 
-      <div className='overflow-x-auto'>
+      <div className='overflow-x-auto modern-scrollbar'>
         <table className='w-full min-w-full divide-y divide-gray-200'>
           <thead className='bg-gray-50'>
             <tr>

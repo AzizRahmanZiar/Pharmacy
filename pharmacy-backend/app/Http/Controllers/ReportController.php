@@ -6,10 +6,68 @@ use App\Models\Expense;
 use App\Models\PurchaseDetail;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Carbon\CarbonPeriod;
+
 
 class ReportController extends Controller
 {
-    public function daily()
+//     public function daily()
+// {
+//     $userId = Auth::id();
+
+//     $start = Carbon::today()->subDays(29)->startOfDay();
+//     $end = Carbon::today()->endOfDay();
+
+//     // Purchases
+//     $purchases = Purchase::where('user_id', $userId)
+//         ->whereBetween('purchase_date', [$start, $end])
+//         ->selectRaw('DATE(purchase_date) as date, SUM(total_amount) as total')
+//         ->groupBy('date')
+//         ->get()
+//         ->keyBy('date');
+
+//     // Sales
+//     $sales = Sale::where('user_id', $userId)
+//         ->whereBetween('sale_date', [$start, $end])
+//         ->selectRaw('DATE(sale_date) as date, SUM(total_amount) as total')
+//         ->groupBy('date')
+//         ->get()
+//         ->keyBy('date');
+
+//     // Profit (via purchases)
+//     $profit = PurchaseDetail::join('purchases', 'purchases.id', '=', 'purchase_details.purchase_id')
+//         ->where('purchases.user_id', $userId)
+//         ->whereBetween('purchases.purchase_date', [$start, $end])
+//         ->selectRaw('DATE(purchases.purchase_date) as date, SUM(purchase_details.total_profit) as total')
+//         ->groupBy('date')
+//         ->get()
+//         ->keyBy('date');
+
+//     // Expenses
+//     $expenses = Expense::where('user_id', $userId)
+//     ->whereBetween('created_at', [$start, $end])
+//     ->selectRaw('DATE(created_at) as date, SUM(amount) as total')
+//     ->groupBy('date')
+//     ->get()
+//     ->keyBy('date');
+
+//     $dates = [];
+//     for ($date = $start->copy(); $date <= $end; $date->addDay()) {
+//         $dateStr = $date->toDateString();
+//         $dates[] = [
+//             'date'      => $dateStr,
+//             'purchases' => $purchases[$dateStr]->total ?? 0,
+//             'sales'     => $sales[$dateStr]->total ?? 0,
+//             'profit'    => $profit[$dateStr]->total ?? 0,
+//             'expenses'  => $expenses[$dateStr]->total ?? 0,
+//         ];
+//     }
+
+//     return response()->json($dates);
+// }
+
+
+public function daily()
 {
     $userId = Auth::id();
 
@@ -21,50 +79,117 @@ class ReportController extends Controller
         ->whereBetween('purchase_date', [$start, $end])
         ->selectRaw('DATE(purchase_date) as date, SUM(total_amount) as total')
         ->groupBy('date')
-        ->get()
-        ->keyBy('date');
+        ->pluck('total', 'date');
 
     // Sales
     $sales = Sale::where('user_id', $userId)
         ->whereBetween('sale_date', [$start, $end])
         ->selectRaw('DATE(sale_date) as date, SUM(total_amount) as total')
         ->groupBy('date')
-        ->get()
-        ->keyBy('date');
+        ->pluck('total', 'date');
 
-    // Profit (via purchases)
+    // Profit
     $profit = PurchaseDetail::join('purchases', 'purchases.id', '=', 'purchase_details.purchase_id')
         ->where('purchases.user_id', $userId)
         ->whereBetween('purchases.purchase_date', [$start, $end])
         ->selectRaw('DATE(purchases.purchase_date) as date, SUM(purchase_details.total_profit) as total')
         ->groupBy('date')
-        ->get()
-        ->keyBy('date');
+        ->pluck('total', 'date');
 
     // Expenses
     $expenses = Expense::where('user_id', $userId)
-    ->whereBetween('created_at', [$start, $end])
-    ->selectRaw('DATE(created_at) as date, SUM(amount) as total')
-    ->groupBy('date')
-    ->get()
-    ->keyBy('date');
+        ->whereBetween('created_at', [$start, $end])
+        ->selectRaw('DATE(created_at) as date, SUM(amount) as total')
+        ->groupBy('date')
+        ->pluck('total', 'date');
 
-    $dates = [];
-    for ($date = $start->copy(); $date <= $end; $date->addDay()) {
+    $period = CarbonPeriod::create($start, $end);
+
+    $data = [];
+
+    foreach ($period as $date) {
         $dateStr = $date->toDateString();
-        $dates[] = [
+
+        $data[] = [
             'date'      => $dateStr,
-            'purchases' => $purchases[$dateStr]->total ?? 0,
-            'sales'     => $sales[$dateStr]->total ?? 0,
-            'profit'    => $profit[$dateStr]->total ?? 0,
-            'expenses'  => $expenses[$dateStr]->total ?? 0,
+            'purchases' => $purchases[$dateStr] ?? 0,
+            'sales'     => $sales[$dateStr] ?? 0,
+            'profit'    => $profit[$dateStr] ?? 0,
+            'expenses'  => $expenses[$dateStr] ?? 0,
         ];
     }
 
-    return response()->json($dates);
+    return response()->json($data);
 }
 
-    public function monthly()
+
+public function weekly()
+{
+    $userId = Auth::id();
+
+    $start = Carbon::now()->subWeeks(7)->startOfWeek();
+    $end = Carbon::now()->endOfWeek();
+
+    $formatKey = fn($y, $w) => $y . '-W' . str_pad($w, 2, '0', STR_PAD_LEFT);
+
+    // Purchases
+    $purchases = Purchase::where('user_id', $userId)
+        ->whereBetween('purchase_date', [$start, $end])
+        ->selectRaw('YEAR(purchase_date) y, WEEK(purchase_date, 1) w, SUM(total_amount) total')
+        ->groupBy('y', 'w')
+        ->get()
+        ->mapWithKeys(fn($i) => [$formatKey($i->y, $i->w) => $i->total]);
+
+    // Sales
+    $sales = Sale::where('user_id', $userId)
+        ->whereBetween('sale_date', [$start, $end])
+        ->selectRaw('YEAR(sale_date) y, WEEK(sale_date, 1) w, SUM(total_amount) total')
+        ->groupBy('y', 'w')
+        ->get()
+        ->mapWithKeys(fn($i) => [$formatKey($i->y, $i->w) => $i->total]);
+
+    // Profit
+    $profit = PurchaseDetail::join('purchases', 'purchases.id', '=', 'purchase_details.purchase_id')
+        ->where('purchases.user_id', $userId)
+        ->whereBetween('purchases.purchase_date', [$start, $end])
+        ->selectRaw('YEAR(purchases.purchase_date) y, WEEK(purchases.purchase_date, 1) w, SUM(purchase_details.total_profit) total')
+        ->groupBy('y', 'w')
+        ->get()
+        ->mapWithKeys(fn($i) => [$formatKey($i->y, $i->w) => $i->total]);
+
+    // Expenses
+    $expenses = Expense::where('user_id', $userId)
+        ->whereBetween('created_at', [$start, $end])
+        ->selectRaw('YEAR(created_at) y, WEEK(created_at, 1) w, SUM(amount) total')
+        ->groupBy('y', 'w')
+        ->get()
+        ->mapWithKeys(fn($i) => [$formatKey($i->y, $i->w) => $i->total]);
+
+    $weeks = [];
+    $current = $start->copy();
+
+    while ($current <= $end) {
+        $year = $current->year;
+        $week = $current->weekOfYear;
+
+        $key = $formatKey($year, $week);
+
+        $weeks[] = [
+            'week'      => 'Week ' . $week . ' (' . $current->format('M') . ')',
+            'purchases' => $purchases[$key] ?? 0,
+            'sales'     => $sales[$key] ?? 0,
+            'profit'    => $profit[$key] ?? 0,
+            'expenses'  => $expenses[$key] ?? 0,
+        ];
+
+        $current->addWeek();
+    }
+
+    return response()->json($weeks);
+}
+
+
+public function monthly()
 {
     $userId = Auth::id();
 

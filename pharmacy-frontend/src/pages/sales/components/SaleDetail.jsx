@@ -70,7 +70,7 @@ export function SaleDetail({ sale }) {
       </div>
 
       {/* Medicines Table */}
-      <div className='overflow-x-auto'>
+      <div className='h-[7rem]  overflow-x-auto modern-scrollbar'>
         <table className='w-full min-w-full divide-y divide-gray-200'>
           <thead className='bg-gray-50'>
             <tr>

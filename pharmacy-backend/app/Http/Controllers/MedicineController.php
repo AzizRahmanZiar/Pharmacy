@@ -14,7 +14,7 @@ public function index(Request $request){
         ->where('quantity', '>', 0);
 
     // If you need pagination:
-    $medicines = $query->latest()->paginate(5);
+    $medicines = $query->latest()->paginate(4);
 
     return response()->json($medicines);
 }

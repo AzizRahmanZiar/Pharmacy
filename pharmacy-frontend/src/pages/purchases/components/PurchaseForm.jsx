@@ -77,8 +77,8 @@ export function PurchaseForm({
       </div>
 
       {/* Medicines table (unchanged) */}
-      <div className='overflow-x-auto border border-gray-200 rounded-lg'>
-        <div className='max-h-[10rem] overflow-y-auto relative'>
+      <div className='overflow-x-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100'>
+        <div className='h-[7rem] overflow-x-auto modern-scrollbar'>
           <table className='w-full min-w-full divide-y divide-gray-200'>
             <thead className='bg-gray-50 sticky top-0 z-10'>
               <tr>

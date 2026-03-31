@@ -62,3 +62,59 @@
   scrollbar-width: thin;
   scrollbar-color: #a5b4fc #eef2ff;
 }
+/* In your global CSS */
+.modern-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 #f1f5f9;
+}
+
+.modern-scrollbar::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.modern-scrollbar::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 10px;
+}
+
+.modern-scrollbar::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 10px;
+}
+
+.modern-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+@media print {
+  /* Hide non-report elements */
+  .no-print,
+  .dashboard-summary-cards,
+  .low-stock-card,
+  .near-expiry-card,
+  button,
+  .modal {
+    display: none !important;
+  }
+  /* Ensure chart container prints full width */
+  .recharts-wrapper,
+  .recharts-surface {
+    width: 100% !important;
+    height: auto !important;
+  }
+  /* Force white background and black text for print */
+  body,
+  .bg-white,
+  .rounded-2xl,
+  .p-6 {
+    background: white !important;
+    color: black !important;
+    box-shadow: none !important;
+    border: none !important;
+  }
+  /* Remove gradients for print */
+  .bg-gradient-to-r {
+    background: white !important;
+  }
+}

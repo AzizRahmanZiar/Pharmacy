@@ -27,10 +27,12 @@ const formatAxisDate = (dateStr, range) => {
   if (range === 'daily') {
     const d = new Date(dateStr);
     return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  } else if (range === 'weekly') {
+    return dateStr;
   } else if (range === 'monthly') {
-    return dateStr; // already "Mar 2025"
+    return dateStr;
   } else {
-    return dateStr; // year
+    return dateStr;
   }
 };
 
@@ -42,6 +44,14 @@ const mapResponseToChartData = (data, range) => {
     if (range === 'daily') {
       return {
         date: item.date,
+        purchases: Number(item.purchases) || 0,
+        sales: Number(item.sales) || 0,
+        profit: Number(item.profit) || 0,
+        expenses: Number(item.expenses) || 0,
+      };
+    } else if (range === 'weekly') {
+      return {
+        date: item.week || item.date,
         purchases: Number(item.purchases) || 0,
         sales: Number(item.sales) || 0,
         profit: Number(item.profit) || 0,
@@ -81,7 +91,7 @@ const ChartSkeleton = () => (
 );
 
 export function DashboardCharts() {
-  const [range, setRange] = useState('daily');
+  const [range, setRange] = useState('weekly'); // weekly is default
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -130,11 +140,11 @@ export function DashboardCharts() {
 
   const onRetry = () => setRefreshKey((k) => k + 1);
 
-  // Custom tooltip with glassmorphism
+  // Custom tooltip
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
       return (
-        <div className='bg-white/80 backdrop-blur-md p-4 shadow-xl rounded-xl border border-gray-100'>
+        <div className='bg-white p-4 shadow-xl rounded-xl border border-gray-100'>
           <p className='text-sm font-semibold text-gray-800 mb-2'>{label}</p>
           {payload.map((entry, index) => (
             <div
@@ -165,23 +175,27 @@ export function DashboardCharts() {
             Financial Performance Overview
           </h2>
           <div className='inline-flex rounded-lg shadow-sm' role='group'>
-            {['daily', 'monthly', 'yearly'].map((option) => (
-              <button
-                key={option}
-                onClick={() => setRange(option)}
-                className={`px-5 py-2 text-sm font-medium capitalize transition-all duration-200 
-                  ${
-                    range === option
-                      ? 'bg-blue-600 text-white shadow-md hover:bg-blue-700'
-                      : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300'
-                  } 
-                  ${option === 'daily' ? 'rounded-l-lg' : ''} 
-                  ${option === 'yearly' ? 'rounded-r-lg' : ''} 
-                  border-r last:border-r-0 focus:z-10 focus:ring-2 focus:ring-blue-500`}
-              >
-                {option}
-              </button>
-            ))}
+            {['daily', 'weekly', 'monthly', 'yearly'].map((option, idx) => {
+              let roundedClass = '';
+              if (idx === 0) roundedClass = 'rounded-l-lg';
+              if (idx === 3) roundedClass = 'rounded-r-lg';
+              return (
+                <button
+                  key={option}
+                  onClick={() => setRange(option)}
+                  className={`px-5 py-2 text-sm font-medium capitalize transition-all duration-200 
+                    ${
+                      range === option
+                        ? 'bg-blue-600 text-white shadow-md hover:bg-blue-700'
+                        : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300'
+                    } 
+                    ${roundedClass}
+                    border-r last:border-r-0 focus:z-10 focus:ring-2 focus:ring-blue-500`}
+                >
+                  {option}
+                </button>
+              );
+            })}
           </div>
         </div>
       </div>

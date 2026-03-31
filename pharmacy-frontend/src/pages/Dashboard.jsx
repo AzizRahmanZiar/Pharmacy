@@ -12,7 +12,6 @@ import { DashboardCard } from '../components/DashboardCard';
 import { LowStockCard } from '../components/LowStockCard';
 import { LowStockModal } from '../components/LowStockModal';
 import { DashboardCharts } from '../components/DashboardCharts';
-// Import the new components
 import { NearExpiryCard } from '../components/NearExpiryCard';
 import { NearExpiryModal } from '../components/NearExpiryModal';
 
@@ -41,19 +40,9 @@ export default function Dashboard() {
     loadData();
   }, []);
 
-  // Formatting utilities
   const formatNumber = (num) => {
     if (num === undefined || num === null) return '0';
     return new Intl.NumberFormat().format(num);
-  };
-
-  const formatCurrency = (amount) => {
-    if (amount === undefined || amount === null) return '—';
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 2,
-    }).format(amount);
   };
 
   const formatDate = (dateString) => {
@@ -67,21 +56,20 @@ export default function Dashboard() {
 
   const openLowStockModal = () => setShowLowStockModal(true);
   const closeLowStockModal = () => setShowLowStockModal(false);
-
   const openNearExpiryModal = () => setShowNearExpiryModal(true);
   const closeNearExpiryModal = () => setShowNearExpiryModal(false);
 
   return (
-    <div className='p-6 space-y-6 overflow-auto'>
-      <h1 className='text-3xl font-bold text-gray-800'>Dashboard</h1>
+    <div className='overflow-x-auto modern-scrollbar'>
+      <h1 className='text-3xl font-bold text-gray-800 mb-6'>Dashboard</h1>
 
       {error && (
-        <div className='bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg'>
+        <div className='bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4'>
           {error}
         </div>
       )}
 
-      <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6'>
+      <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8'>
         {loading ? (
           <div className='col-span-full flex justify-center py-12'>
             <LoadingSpinner />
@@ -120,7 +108,6 @@ export default function Dashboard() {
               count={dashboard?.lowStock?.length || 0}
               onClick={openLowStockModal}
             />
-            {/* New Near Expiry Card */}
             <NearExpiryCard
               count={dashboard?.nearExpiry?.length || 0}
               onClick={openNearExpiryModal}
@@ -131,7 +118,6 @@ export default function Dashboard() {
 
       <DashboardCharts />
 
-      {/* Low Stock Modal */}
       {showLowStockModal && (
         <LowStockModal
           items={dashboard?.lowStock || []}
@@ -139,8 +125,6 @@ export default function Dashboard() {
           formatDate={formatDate}
         />
       )}
-
-      {/* Near Expiry Modal */}
       {showNearExpiryModal && (
         <NearExpiryModal
           items={dashboard?.nearExpiry || []}

@@ -52,11 +52,16 @@ Route::middleware('auth:sanctum')->prefix('expenses')->group(function () {
 
 
 
-Route::middleware('auth:sanctum')->get('/reports/daily', [ReportController::class, 'daily']);
-Route::middleware('auth:sanctum')->get('/reports/monthly', [ReportController::class, 'monthly']);
-Route::middleware('auth:sanctum')->get('/reports/yearly', [ReportController::class, 'yearly']);
+// Route::middleware('auth:sanctum')->get('/reports/daily', [ReportController::class, 'daily']);
+// Route::middleware('auth:sanctum')->get('/reports/monthly', [ReportController::class, 'monthly']);
+// Route::middleware('auth:sanctum')->get('/reports/yearly', [ReportController::class, 'yearly']);
 
-
+Route::middleware('auth:sanctum')->prefix('reports')->group(function () {
+    Route::get('/daily', [ReportController::class, 'daily']);
+    Route::get('/weekly', [ReportController::class, 'weekly']);
+    Route::get('/monthly', [ReportController::class, 'monthly']);
+    Route::get('/yearly', [ReportController::class, 'yearly']);
+});
 
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
