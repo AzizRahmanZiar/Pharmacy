@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Doctor;
 use App\Models\Expense;
 use App\Models\Medicine;
 use App\Models\PurchaseDetail;
@@ -46,6 +47,22 @@ class DashboardController extends Controller
             ->orderBy('expiry_date')
             ->get(['id', 'generic', 'expiry_date', 'quantity as stock_quantity']);
 
+            //Doctor totals
+            $totalConsultationFees = Doctor::where('user_id', $userId)->sum('fees');
+
+            $totalSonographyFees = Doctor::where('user_id', $userId)->sum('sonography_fee');
+
+            $totalEcgFees = Doctor::where('user_id', $userId)->sum('ecg_fee');
+
+            $totalXrayFees = Doctor::where('user_id', $userId)->sum('xray_fee');
+
+            //Grand total (optional but VERY useful)
+            $totalDoctorIncome =
+                $totalConsultationFees +
+                $totalSonographyFees +
+                $totalEcgFees +
+                $totalXrayFees;
+
         return response()->json([
             'totalPurchases' => $totalPurchases,
             'totalProfit'    => $totalProfit,
@@ -53,6 +70,13 @@ class DashboardController extends Controller
             'netProfit'      => $netProfit,
             'lowStock'       => $lowStock,
             'nearExpiry'     => $nearExpiry,
+
+            // Doctor data
+            'totalConsultationFees' => $totalConsultationFees,
+            'totalSonographyFees'   => $totalSonographyFees,
+            'totalEcgFees'          => $totalEcgFees,
+            'totalXrayFees'         => $totalXrayFees,
+            'totalDoctorIncome'     => $totalDoctorIncome,
         ]);
     }
 }

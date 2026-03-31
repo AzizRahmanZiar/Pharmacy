@@ -5,6 +5,11 @@ import {
   FaCoins,
   FaMoneyBillWave,
   FaChartLine,
+  FaStethoscope,
+  FaHeartbeat,
+  FaXRay,
+  FaProcedures,
+  FaDollarSign,
 } from 'react-icons/fa';
 
 import { LoadingSpinner } from '../components/LoadingSpinner';
@@ -69,6 +74,7 @@ export default function Dashboard() {
         </div>
       )}
 
+      {/* First row: existing metrics */}
       <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8'>
         {loading ? (
           <div className='col-span-full flex justify-center py-12'>
@@ -115,6 +121,53 @@ export default function Dashboard() {
           </>
         )}
       </div>
+
+      {/* Second row: Doctor income totals */}
+      {!loading && dashboard && (
+        <div className='my-8'>
+          <h2 className='text-xl font-semibold text-gray-800 mb-4'>
+            Doctor Income Summary
+          </h2>
+          <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6'>
+            <DashboardCard
+              title='Consultation Fees'
+              value={formatNumber(dashboard?.totalConsultationFees)}
+              icon={FaStethoscope}
+              iconColor='text-indigo-500'
+              valueColor='text-indigo-600'
+            />
+            <DashboardCard
+              title='Sonography Fees'
+              value={formatNumber(dashboard?.totalSonographyFees)}
+              icon={FaProcedures}
+              iconColor='text-blue-500'
+              valueColor='text-blue-600'
+            />
+            <DashboardCard
+              title='ECG Fees'
+              value={formatNumber(dashboard?.totalEcgFees)}
+              icon={FaHeartbeat}
+              iconColor='text-green-500'
+              valueColor='text-green-600'
+            />
+            <DashboardCard
+              title='X‑ray Fees'
+              value={formatNumber(dashboard?.totalXrayFees)}
+              icon={FaXRay}
+              iconColor='text-purple-500'
+              valueColor='text-purple-600'
+            />
+            <DashboardCard
+              title='Total Doctor Income'
+              value={formatNumber(dashboard?.totalDoctorIncome)}
+              icon={FaDollarSign}
+              iconColor='text-yellow-500'
+              valueColor='text-yellow-600'
+              gradient={true} // optional special styling
+            />
+          </div>
+        </div>
+      )}
 
       <DashboardCharts />
 

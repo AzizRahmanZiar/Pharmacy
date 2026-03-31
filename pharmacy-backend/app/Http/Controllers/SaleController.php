@@ -6,6 +6,7 @@ use App\Models\Sale;
 use App\Models\SaleDetail;
 use App\Models\Medicine;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 
 class SaleController extends Controller{
@@ -264,21 +265,22 @@ public function show($id)
 
 public function saleTableReport(Request $request)
 {
-    $status = $request->query('status'); // paid, partial, pending, all
+    $status = $request->query('status');
 
-    $query = Sale::query(); // ✅ simple like purchase
+    $query = Sale::query();
 
-    // Apply filter
     if ($status && $status !== 'all') {
         $query->where('payment_status', $status);
     }
 
     $sales = $query->orderBy('id', 'desc')->get();
-    // dd($sales);
+
+    $currentDateTime = Carbon::now('Asia/Kabul')->format('F j, Y, g:i A');
 
     $pdf = Pdf::loadView('reports.sale-table', [
-        'sales' => $sales,
-        'status' => $status ?? 'all',
+        'sales'           => $sales,
+        'status'          => $status ?? 'all',
+        'currentDateTime' => $currentDateTime,
     ]);
 
     return $pdf->download('sale-report-' . ($status ?? 'all') . '.pdf');

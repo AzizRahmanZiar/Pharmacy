@@ -8,6 +8,7 @@ use App\Models\PurchaseDetail;
 use App\Models\Medicine;
 use App\Models\MedicineItem;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 
 class PurchaseController extends Controller
@@ -215,19 +216,25 @@ class PurchaseController extends Controller
                 'total_profit' => $totalProfit,
             ]);
 
-            Medicine::create([
-                'user_id' => Auth::id(),
-                'generic' => $row['generic'],
-                'brand' => $row['brand'],
-                'dosage' => $row['dosage'],
-                'strength' => $row['strength'],
-                'route' => $row['route'],
+            $medicine = Medicine::where([
+            'user_id' => Auth::id(),
+            'generic' => $row['generic'],
+            'brand' => $row['brand'],
+            'dosage' => $row['dosage'],
+            'strength' => $row['strength'],
+            'route' => $row['route'],
+            'buy_price' => $row['buy_price'],
+        ])->first();
+
+        if ($medicine) {
+            // ✅ update existing record
+            $medicine->update([
                 'quantity' => $row['quantity'],
-                'buy_price' => $row['buy_price'],
                 'sale_price' => $row['sale_price'],
                 'expiry_date' => $row['expiry_date'] ?? null,
                 'total_buyer_price' => $totalBuyerPrice,
             ]);
+        }
         }
 
         return response()->json(['success' => true]);
@@ -251,24 +258,28 @@ class PurchaseController extends Controller
 
 
 
+
+
 public function purchaseTableReport(Request $request)
 {
     $status = $request->query('status'); // paid, partial, pending, all
 
     $query = Purchase::withSum('details', 'total_buyer_price')
-    ->withSum('details', 'total_profit');
+        ->withSum('details', 'total_profit');
 
-    // Apply filter
     if ($status && $status !== 'all') {
         $query->where('payment_status', $status);
     }
 
     $purchases = $query->orderBy('id', 'desc')->get();
-    // dd($purchases);
+
+    // Generate current date/time in your timezone
+    $currentDateTime = Carbon::now('Asia/Kabul')->format('F j, Y, g:i A');
 
     $pdf = Pdf::loadView('reports.purchase-table', [
-        'purchases' => $purchases,
-        'status' => $status ?? 'all',
+        'purchases'       => $purchases,
+        'status'          => $status ?? 'all',
+        'currentDateTime' => $currentDateTime, // Pass to view
     ]);
 
     return $pdf->download('purchase-report-' . ($status ?? 'all') . '.pdf');
