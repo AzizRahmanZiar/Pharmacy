@@ -11,6 +11,7 @@ import Purchase from './pages/purchases/Purchase';
 import Sale from './pages/sales/Sale';
 import ExpensesPage from './pages/expenses/Expenses';
 import TransactionList from './pages/TransactionList';
+import Doctor from './pages/doctor/Doctor';
 
 function App() {
   return (
@@ -37,6 +38,7 @@ function App() {
             <Route path='sale' element={<Sale />} />
             <Route path='items' element={<ItemsCreate />} />
             <Route path='tran' element={<TransactionList />} />
+            <Route path='doc' element={<Doctor />} />
           </Route>
           <Route path='*' element={<Navigate to='/' replace />} />
         </Routes>

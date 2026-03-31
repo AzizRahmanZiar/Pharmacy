@@ -5,6 +5,7 @@ use Illuminate\Http\Request;
 use App\Models\Sale;
 use App\Models\SaleDetail;
 use App\Models\Medicine;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Auth;
 
 class SaleController extends Controller{
@@ -258,4 +259,28 @@ public function show($id)
             'message' => 'Sale deleted successfully'
         ]);
     }
+
+
+
+public function saleTableReport(Request $request)
+{
+    $status = $request->query('status'); // paid, partial, pending, all
+
+    $query = Sale::query(); // ✅ simple like purchase
+
+    // Apply filter
+    if ($status && $status !== 'all') {
+        $query->where('payment_status', $status);
+    }
+
+    $sales = $query->orderBy('id', 'desc')->get();
+    // dd($sales);
+
+    $pdf = Pdf::loadView('reports.sale-table', [
+        'sales' => $sales,
+        'status' => $status ?? 'all',
+    ]);
+
+    return $pdf->download('sale-report-' . ($status ?? 'all') . '.pdf');
+}
 }

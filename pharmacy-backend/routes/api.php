@@ -9,6 +9,7 @@ use App\Http\Controllers\PurchaseController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SaleController;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\DoctorController;
 use App\Http\Controllers\TransactionController;
 
 Route::middleware('auth:sanctum')->get('/dashboard', [DashboardController::class, 'index']);
@@ -49,13 +50,6 @@ Route::middleware('auth:sanctum')->prefix('expenses')->group(function () {
     Route::delete('/{id}',[ExpenseController::class,'destroy']);
 });
 
-
-
-
-// Route::middleware('auth:sanctum')->get('/reports/daily', [ReportController::class, 'daily']);
-// Route::middleware('auth:sanctum')->get('/reports/monthly', [ReportController::class, 'monthly']);
-// Route::middleware('auth:sanctum')->get('/reports/yearly', [ReportController::class, 'yearly']);
-
 Route::middleware('auth:sanctum')->prefix('reports')->group(function () {
     Route::get('/daily', [ReportController::class, 'daily']);
     Route::get('/weekly', [ReportController::class, 'weekly']);
@@ -74,3 +68,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
 
 Route::middleware('auth:sanctum')->get('/transactions', [TransactionController::class, 'index']);
+
+
+Route::get('/purchase/report/table', [PurchaseController::class, 'purchaseTableReport']);
+Route::get('/sale/report/table', [SaleController::class, 'saleTableReport']);
+
+Route::apiResource('doctors', DoctorController::class)->middleware('auth:sanctum');

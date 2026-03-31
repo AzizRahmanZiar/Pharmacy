@@ -1,5 +1,6 @@
+/* eslint-disable no-unused-vars */
 import { useEffect, useState, useMemo } from 'react';
-import { FiPlus } from 'react-icons/fi';
+import { FiDownload, FiPlus } from 'react-icons/fi';
 import api from '../../api';
 import { Modal } from '../../components/Modal';
 import { LoadingSpinner } from '../../components/LoadingSpinner';
@@ -84,6 +85,13 @@ export default function Sale() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const downloadSaleReport = (status) => {
+    window.open(
+      `http://127.0.0.1:8000/api/sale/report/table?status=${status}`,
+      '_blank',
+    );
   };
 
   const addRow = () => {
@@ -288,7 +296,16 @@ export default function Sale() {
               {status}
             </button>
           ))}
+          <button
+            onClick={() => downloadSaleReport(statusFilter)}
+            className='flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg shadow-md hover:shadow-lg hover:scale-105 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'
+          >
+            <FiDownload className='w-4 h-4' />
+            Download PDF ({statusFilter === 'all' ? 'All' : statusFilter})
+          </button>
         </div>
+        {/* Single PDF button - respects current status filter */}
+
         <div className='sm:w-72'>
           <SearchInput
             value={searchTerm}

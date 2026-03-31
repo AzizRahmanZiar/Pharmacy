@@ -7,6 +7,7 @@ use App\Models\Purchase;
 use App\Models\PurchaseDetail;
 use App\Models\Medicine;
 use App\Models\MedicineItem;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Auth;
 
 class PurchaseController extends Controller
@@ -246,4 +247,30 @@ class PurchaseController extends Controller
             'message' => 'Deleted successfully'
         ]);
     }
+
+
+
+
+public function purchaseTableReport(Request $request)
+{
+    $status = $request->query('status'); // paid, partial, pending, all
+
+    $query = Purchase::withSum('details', 'total_buyer_price')
+    ->withSum('details', 'total_profit');
+
+    // Apply filter
+    if ($status && $status !== 'all') {
+        $query->where('payment_status', $status);
+    }
+
+    $purchases = $query->orderBy('id', 'desc')->get();
+    // dd($purchases);
+
+    $pdf = Pdf::loadView('reports.purchase-table', [
+        'purchases' => $purchases,
+        'status' => $status ?? 'all',
+    ]);
+
+    return $pdf->download('purchase-report-' . ($status ?? 'all') . '.pdf');
+}
 }

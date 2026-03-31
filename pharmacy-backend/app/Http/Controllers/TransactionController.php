@@ -1,6 +1,8 @@
 <?php
 
 namespace App\Http\Controllers;
+
+use App\Models\Doctor;
 use App\Models\Sale;
 use App\Models\Purchase;
 use App\Models\Expense;
@@ -48,10 +50,40 @@ class TransactionController extends Controller
         ];
     });
 
+            // New: Doctor fees transactions
+        $doctors = Doctor::where('user_id', $userId)
+            ->latest()
+            ->get()
+            ->map(function ($doctor) {
+                // Total amount = consultation + optional test fees
+                $total = $doctor->fees
+                    + ($doctor->sonography_fee ?? 0)
+                    + ($doctor->ecg_fee ?? 0)
+                    + ($doctor->xray_fee ?? 0);
+
+                // Description: use doctor name if available, else fallback to description
+                $description = $doctor->name
+                    ? 'Doctor Fees: ' . $doctor->name
+                    : 'Doctor Fees (ID: ' . $doctor->id . ')';
+
+                if ($doctor->description) {
+                    $description .= ' - ' . $doctor->description;
+                }
+
+                return [
+                    'type' => 'doctor',
+                    'id' => $doctor->id,
+                    'amount' => $total,
+                    'description' => $description,
+                    'date' => $doctor->created_at,
+                ];
+            });
+
     $transactions = collect()
         ->merge($sales)
         ->merge($purchases)
         ->merge($expenses)
+        ->merge($doctors)
         ->sortByDesc('date')
         ->values();
 

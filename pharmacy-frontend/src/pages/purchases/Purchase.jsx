@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars */
 import { useEffect, useState, useMemo } from 'react';
-import { FiPlus } from 'react-icons/fi';
+import { FiDownload, FiPlus } from 'react-icons/fi';
 import api from '../../api';
 import { Modal } from '../../components/Modal';
 import { LoadingSpinner } from '../../components/LoadingSpinner';
@@ -33,6 +33,13 @@ export default function Purchase() {
   // Filters
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all'); // 'all', 'pending', 'paid', 'partial'
+
+  const downloadReport = (status) => {
+    window.open(
+      `http://127.0.0.1:8000/api/purchase/report/table?status=${status}`,
+      '_blank',
+    );
+  };
 
   // Form state (shared for create & edit)
   const [form, setForm] = useState({
@@ -329,6 +336,13 @@ export default function Purchase() {
               {status}
             </button>
           ))}
+          <button
+            onClick={() => downloadReport(statusFilter)}
+            className='flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg shadow-md hover:shadow-lg hover:scale-105 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'
+          >
+            <FiDownload className='w-4 h-4' />
+            Download PDF ({statusFilter === 'all' ? 'All' : statusFilter})
+          </button>
         </div>
 
         {/* Search */}

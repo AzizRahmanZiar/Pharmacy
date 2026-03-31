@@ -1,7 +1,12 @@
 import { useState, useRef, useEffect } from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
 import { FiMenu, FiX, FiLogOut } from 'react-icons/fi';
-import { MdDashboard, MdLocalPharmacy, MdMoneyOff } from 'react-icons/md';
+import {
+  MdDashboard,
+  MdLocalPharmacy,
+  MdMoneyOff,
+  MdLocalHospital,
+} from 'react-icons/md';
 import { FaBoxes, FaShoppingCart, FaShoppingBag } from 'react-icons/fa';
 import { RiExchangeDollarLine } from 'react-icons/ri';
 import { AiOutlinePlusCircle } from 'react-icons/ai';
@@ -44,6 +49,7 @@ export default function Layout() {
     { to: '/purchase', icon: FaShoppingCart, label: 'Purchase' },
     { to: '/sale', icon: FaShoppingBag, label: 'Sale' },
     { to: '/expense', icon: MdMoneyOff, label: 'Expense' },
+    { to: '/doc', icon: MdLocalHospital, label: 'Doctor' }, // ✅ doctor icon
   ];
 
   return (
