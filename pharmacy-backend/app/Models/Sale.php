@@ -8,6 +8,7 @@ class Sale extends Model
 {
     protected $fillable = [
     'user_id',
+    'pharmacy_id',
     'bill_no',
     'patient_name',
     'sale_date',

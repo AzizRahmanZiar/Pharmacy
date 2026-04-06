@@ -1,5 +1,7 @@
+/* eslint-disable react-refresh/only-export-components */
+/* eslint-disable no-undef */
 import { createContext, useContext, useState, useEffect } from 'react';
-import api from '../api'; // your configured axios instance
+import api from '../api';
 
 const AuthContext = createContext();
 
@@ -16,11 +18,12 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Load user from token on mount
+  const isAdmin = user?.role === 'admin';
+  const isPharmacist = user?.role === 'pharmacist';
+
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (token) {
-      // Set default Authorization header
       api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       fetchUser();
     } else {
@@ -57,10 +60,18 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const register = async (name, email, password) => {
+  // ✅ FIXED: now accepts pharmacyName and phone and sends them to backend
+  const register = async (name, email, password, pharmacyName, phone) => {
     setError(null);
     try {
-      const response = await api.post('/register', { name, email, password });
+      const response = await api.post('/register', {
+        name,
+        email,
+        password,
+        pharmacy_name: pharmacyName, // adjust key if your backend uses different naming
+        phone,
+        role: 'pharmacist', // or whatever default role you need
+      });
       const { token, user } = response.data;
       localStorage.setItem('token', token);
       api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
@@ -92,6 +103,8 @@ export const AuthProvider = ({ children }) => {
     login,
     register,
     logout,
+    isAdmin,
+    isPharmacist,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
@@ -10,42 +11,43 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 
 class SaleController extends Controller{
-public function index(Request $request)
-{
-    $query = Sale::where('user_id', Auth::id())->latest();
 
-    if ($request->has('status') && $request->status !== 'all') {
-        $query->where('payment_status', $request->status);
+    private function pharmacyId(){
+        return Auth::user()->pharmacy_id;
     }
 
-    $sales = $query->paginate(3);
+    public function index(Request $request){
+        $query = Sale::where('pharmacy_id', $this->pharmacyId())->latest();
 
-    return response()->json($sales);
-}
+        if ($request->has('status') && $request->status !== 'all') {
+            $query->where('payment_status', $request->status);
+        }
 
-public function show($id)
-{
-    $sale = Sale::where('user_id', Auth::id())
-    ->with('details.medicine')
-    ->findOrFail($id);
-    // Add original_quantity to each medicine
-    $sale->details->each(function ($detail) {
-        $detail->medicine->original_quantity = $detail->medicine->quantity + $detail->quantity;
-    });
-    return response()->json($sale);
-}
+        return response()->json($query->paginate(10));
+    }
 
-    // public function show($id){
-    //     $sale = Sale::with('details.medicine')->find($id);
-    //     return response()->json($sale);
-    // }
+    public function show($id){
+        $sale = Sale::where('pharmacy_id', $this->pharmacyId())
+            ->with('details.medicine')
+            ->findOrFail($id);
+
+        $sale->details->each(function ($detail) {
+            if ($detail->medicine) {
+                $detail->medicine->original_quantity =
+                    $detail->medicine->quantity + $detail->quantity;
+            }
+        });
+
+        return response()->json($sale);
+    }
 
     public function formData(){
-        return response()->json(Medicine::all());
+        return response()->json(
+            Medicine::where('pharmacy_id', $this->pharmacyId())->get()
+        );
     }
 
     public function store(Request $request){
-
         $request->validate([
             'bill_no' => 'required|string',
             'patient_name' => 'nullable|string',
@@ -57,97 +59,75 @@ public function show($id)
         $totalAmount = 0;
 
         foreach ($request->medicines as $row) {
+            if (!$row['medicine_id'] || $row['quantity'] <= 0) continue;
 
-            if (!$row['medicine_id'] || $row['quantity'] <= 0) {
-                continue;
-            }
-
-            $medicine = Medicine::find($row['medicine_id']);
+            $medicine = Medicine::where('pharmacy_id', $this->pharmacyId())
+                ->find($row['medicine_id']);
 
             if (!$medicine) {
-                return response()->json([
-                    'error'=>'Medicine does not exist'
-                ],400);
+                return response()->json(['error' => 'Invalid medicine'], 400);
             }
 
-            if ($medicine->quantity == 0) {
+            if ($medicine->quantity <= 0) {
                 return response()->json([
-                    'error'=>'Medicine '.$medicine->name.' out of stock'
-                ],400);
+                    'error' => 'Medicine ' . $medicine->name . ' out of stock'
+                ], 400);
             }
 
             if ($row['quantity'] > $medicine->quantity) {
                 return response()->json([
-                    'error'=>'Not enough stock for '.$medicine->name
-                ],400);
+                    'error' => 'Not enough stock for ' . $medicine->name
+                ], 400);
             }
 
-            // calculate total
             $totalAmount += $row['quantity'] * $medicine->sale_price;
         }
 
         $paidAmount = $request->paid_amount ?? 0;
         $dueAmount = $totalAmount - $paidAmount;
 
-        $status = 'pending';
-
-        if($paidAmount == 0){
-            $status = 'pending';
-        }
-        elseif($paidAmount < $totalAmount){
-            $status = 'partial';
-        }
-        else{
-            $status = 'paid';
-        }
+        $status = $paidAmount == 0 ? 'pending'
+            : ($paidAmount < $totalAmount ? 'partial' : 'paid');
 
         $sale = Sale::create([
             'user_id' => Auth::id(),
-            'bill_no'=>$request->bill_no,
-            'patient_name'=>$request->patient_name,
-            'sale_date'=>$request->sale_date,
-            'total_amount'=>$totalAmount,
-            'paid_amount'=>$paidAmount,
-            'due_amount'=>$dueAmount,
-            'payment_status'=>$status
+            'pharmacy_id' => $this->pharmacyId(),
+            'bill_no' => $request->bill_no,
+            'patient_name' => $request->patient_name,
+            'sale_date' => $request->sale_date,
+            'total_amount' => $totalAmount,
+            'paid_amount' => $paidAmount,
+            'due_amount' => $dueAmount,
+            'payment_status' => $status
         ]);
 
         foreach ($request->medicines as $row) {
+            if (!$row['medicine_id'] || $row['quantity'] <= 0) continue;
 
-            if (!$row['medicine_id'] || $row['quantity'] <= 0) {
-                continue;
-            }
-
-            $medicine = Medicine::where('user_id', Auth::id())
-    ->find($row['medicine_id']);
+            $medicine = Medicine::where('pharmacy_id', $this->pharmacyId())
+                ->find($row['medicine_id']);
 
             SaleDetail::create([
-                'sale_id'=>$sale->id,
-                'medicine_id'=>$row['medicine_id'],
-                'quantity'=>$row['quantity']
+                'sale_id' => $sale->id,
+                'medicine_id' => $row['medicine_id'],
+                'quantity' => $row['quantity']
             ]);
 
-            // reduce stock
             $medicine->quantity -= $row['quantity'];
             $medicine->save();
         }
 
-        return response()->json([
-            'message'=>'Sale saved successfully'
-        ]);
+        return response()->json(['message' => 'Sale saved successfully']);
     }
 
-
     public function update(Request $request, $id){
+        $sale = Sale::where('pharmacy_id', $this->pharmacyId())
+            ->with('details')
+            ->findOrFail($id);
 
-        $sale = Sale::where('user_id', Auth::id())
-    ->with('details')
-    ->findOrFail($id);
-
-        // restore old stock
         foreach ($sale->details as $detail) {
-
-            $medicine = Medicine::find($detail->medicine_id);
+            $medicine = Medicine::where('pharmacy_id', $this->pharmacyId())
+                ->find($detail->medicine_id);
 
             if ($medicine) {
                 $medicine->quantity += $detail->quantity;
@@ -155,27 +135,22 @@ public function show($id)
             }
         }
 
-        // delete old details
         SaleDetail::where('sale_id', $sale->id)->delete();
 
         $totalAmount = 0;
 
         foreach ($request->medicines as $row) {
+            if (!$row['medicine_id'] || $row['quantity'] <= 0) continue;
 
-            if (!$row['medicine_id'] || $row['quantity'] <= 0) {
-                continue;
-            }
+            $medicine = Medicine::where('pharmacy_id', $this->pharmacyId())
+                ->find($row['medicine_id']);
 
-            $medicine = Medicine::find($row['medicine_id']);
-
-            if (!$medicine) {
-                continue;
-            }
+            if (!$medicine) continue;
 
             if ($row['quantity'] > $medicine->quantity) {
                 return response()->json([
-                    'error' => 'Not enough stock for '.$medicine->name
-                ],422);
+                    'error' => 'Not enough stock for ' . $medicine->name
+                ], 422);
             }
 
             $totalAmount += $row['quantity'] * $medicine->sale_price;
@@ -184,40 +159,26 @@ public function show($id)
         $paidAmount = $request->paid_amount ?? 0;
         $dueAmount = $totalAmount - $paidAmount;
 
-        $status = 'pending';
+        $status = $paidAmount == 0 ? 'pending'
+            : ($paidAmount < $totalAmount ? 'partial' : 'paid');
 
-        if($paidAmount == 0){
-            $status = 'pending';
-        }
-        elseif($paidAmount < $totalAmount){
-            $status = 'partial';
-        }
-        else{
-            $status = 'paid';
-        }
-
-        // update header
         $sale->update([
             'bill_no' => $request->bill_no,
             'patient_name' => $request->patient_name,
             'sale_date' => $request->sale_date,
-            'total_amount'=>$totalAmount,
-            'paid_amount'=>$paidAmount,
-            'due_amount'=>$dueAmount,
-            'payment_status'=>$status
+            'total_amount' => $totalAmount,
+            'paid_amount' => $paidAmount,
+            'due_amount' => $dueAmount,
+            'payment_status' => $status
         ]);
 
         foreach ($request->medicines as $row) {
+            if (!$row['medicine_id'] || !$row['quantity']) continue;
 
-            if (!$row['medicine_id'] || !$row['quantity']) {
-                continue;
-            }
+            $medicine = Medicine::where('pharmacy_id', $this->pharmacyId())
+                ->find($row['medicine_id']);
 
-            $medicine = Medicine::find($row['medicine_id']);
-
-            if (!$medicine) {
-                continue;
-            }
+            if (!$medicine) continue;
 
             SaleDetail::create([
                 'sale_id' => $sale->id,
@@ -229,20 +190,17 @@ public function show($id)
             $medicine->save();
         }
 
-        return response()->json([
-            'message' => 'Sale updated successfully'
-        ]);
+        return response()->json(['message' => 'Sale updated successfully']);
     }
 
-
     public function destroy($id){
+        $sale = Sale::where('pharmacy_id', $this->pharmacyId())
+            ->with('details')
+            ->findOrFail($id);
 
-        $sale = Sale::with('details')->findOrFail($id);
-
-        // restore stock
         foreach ($sale->details as $detail) {
-
-            $medicine = Medicine::find($detail->medicine_id);
+            $medicine = Medicine::where('pharmacy_id', $this->pharmacyId())
+                ->find($detail->medicine_id);
 
             if ($medicine) {
                 $medicine->quantity += $detail->quantity;
@@ -250,39 +208,31 @@ public function show($id)
             }
         }
 
-        // delete details
         SaleDetail::where('sale_id', $sale->id)->delete();
-
-        // delete sale
         $sale->delete();
 
-        return response()->json([
-            'message' => 'Sale deleted successfully'
+        return response()->json(['message' => 'Sale deleted successfully']);
+    }
+
+    public function saleTableReport(Request $request){
+        $status = $request->query('status');
+
+        $query = Sale::where('pharmacy_id', $this->pharmacyId());
+
+        if ($status && $status !== 'all') {
+            $query->where('payment_status', $status);
+        }
+
+        $sales = $query->orderBy('id', 'desc')->get();
+
+        $currentDateTime = Carbon::now('Asia/Kabul')->format('F j, Y, g:i A');
+
+        $pdf = Pdf::loadView('reports.sale-table', [
+            'sales' => $sales,
+            'status' => $status ?? 'all',
+            'currentDateTime' => $currentDateTime,
         ]);
+
+        return $pdf->download('sale-report.pdf');
     }
-
-
-
-public function saleTableReport(Request $request)
-{
-    $status = $request->query('status');
-
-    $query = Sale::query();
-
-    if ($status && $status !== 'all') {
-        $query->where('payment_status', $status);
-    }
-
-    $sales = $query->orderBy('id', 'desc')->get();
-
-    $currentDateTime = Carbon::now('Asia/Kabul')->format('F j, Y, g:i A');
-
-    $pdf = Pdf::loadView('reports.sale-table', [
-        'sales'           => $sales,
-        'status'          => $status ?? 'all',
-        'currentDateTime' => $currentDateTime,
-    ]);
-
-    return $pdf->download('sale-report-' . ($status ?? 'all') . '.pdf');
-}
 }

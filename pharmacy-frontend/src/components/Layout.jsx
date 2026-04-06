@@ -1,11 +1,12 @@
 import { useState, useRef, useEffect } from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
-import { FiMenu, FiX, FiLogOut } from 'react-icons/fi';
+import { FiMenu, FiX, FiLogOut, FiUsers } from 'react-icons/fi';
 import {
   MdDashboard,
   MdLocalPharmacy,
   MdMoneyOff,
   MdLocalHospital,
+  MdSettings,
 } from 'react-icons/md';
 import { FaBoxes, FaShoppingCart, FaShoppingBag } from 'react-icons/fa';
 import { RiExchangeDollarLine } from 'react-icons/ri';
@@ -25,7 +26,6 @@ export default function Layout() {
   const openUserModal = () => setUserModalOpen(true);
   const closeUserModal = () => setUserModalOpen(false);
 
-  // Close modal when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (
@@ -43,13 +43,46 @@ export default function Layout() {
   }, [userModalOpen]);
 
   const navItems = [
-    { to: '/', icon: MdDashboard, label: 'Dashboard' },
-    { to: '/medicine', icon: FaBoxes, label: 'Stock' },
-    { to: '/items', icon: AiOutlinePlusCircle, label: 'Items' },
-    { to: '/purchase', icon: FaShoppingCart, label: 'Purchase' },
-    { to: '/sale', icon: FaShoppingBag, label: 'Sale' },
-    { to: '/expense', icon: MdMoneyOff, label: 'Expense' },
-    { to: '/doc', icon: MdLocalHospital, label: 'Doctor' }, // ✅ doctor icon
+    { to: '/', icon: MdDashboard, label: 'Dashboard', roles: ['admin'] },
+    { to: '/user', icon: FiUsers, label: 'Users', roles: ['admin'] },
+    {
+      to: '/pharmacy',
+      icon: MdLocalPharmacy,
+      label: 'Pharmacy',
+      roles: ['super_admin'],
+    },
+    {
+      to: '/medicine',
+      icon: FaBoxes,
+      label: 'Stock',
+      roles: ['admin', 'staff'],
+    },
+    {
+      to: '/items',
+      icon: AiOutlinePlusCircle,
+      label: 'Items',
+      roles: ['admin', 'staff'],
+    },
+    {
+      to: '/purchase',
+      icon: FaShoppingCart,
+      label: 'Purchase',
+      roles: ['admin', 'staff'],
+    },
+    {
+      to: '/sale',
+      icon: FaShoppingBag,
+      label: 'Sale',
+      roles: ['admin', 'staff'],
+    },
+    { to: '/expense', icon: MdMoneyOff, label: 'Expense', roles: ['admin'] },
+    { to: '/doc', icon: MdLocalHospital, label: 'Doctor', roles: ['admin'] },
+    {
+      to: '/setting',
+      icon: MdSettings,
+      label: 'Setting',
+      roles: ['admin'],
+    },
   ];
 
   return (
@@ -73,19 +106,22 @@ export default function Layout() {
                 MediTrack
               </h1>
             </div>
-            <NavLink
-              to='/tran'
-              className={({ isActive }) =>
-                `flex items-center space-x-2 px-3 py-1.5 rounded-lg text-sm font-medium transition ${
-                  isActive
-                    ? 'bg-indigo-50 text-indigo-700'
-                    : 'text-gray-600 hover:bg-gray-100'
-                }`
-              }
-            >
-              <RiExchangeDollarLine className='h-5 w-5' />
-              <span className='hidden sm:inline'>Transactions</span>
-            </NavLink>
+            {/* Transactions link - only visible to admin */}
+            {user?.role === 'admin' && (
+              <NavLink
+                to='/tran'
+                className={({ isActive }) =>
+                  `flex items-center space-x-2 px-3 py-1.5 rounded-lg text-sm font-medium transition ${
+                    isActive
+                      ? 'bg-indigo-50 text-indigo-700'
+                      : 'text-gray-600 hover:bg-gray-100'
+                  }`
+                }
+              >
+                <RiExchangeDollarLine className='h-5 w-5' />
+                <span className='hidden sm:inline'>Transactions</span>
+              </NavLink>
+            )}
           </div>
 
           <div className='flex items-center space-x-3'>
@@ -121,35 +157,37 @@ export default function Layout() {
         <aside className='hidden lg:flex lg:flex-col w-64 overflow-y-auto bg-white/90 backdrop-blur-sm border-r border-gray-200/60 shadow-lg sidebar-scroll'>
           <nav className='p-4 flex-1'>
             <ul className='space-y-1'>
-              {navItems.map((item) => {
-                const Icon = item.icon;
-                return (
-                  <li key={item.to}>
-                    <NavLink
-                      to={item.to}
-                      end={item.to === '/'}
-                      onClick={closeMobileMenu}
-                      className={({ isActive }) =>
-                        `group flex items-center rounded-xl px-4 py-3 text-sm font-medium transition-all duration-200 ${
-                          isActive
-                            ? 'bg-gradient-to-r from-indigo-50 to-purple-50 text-indigo-700 shadow-sm'
-                            : 'text-gray-600 hover:bg-gray-50 hover:text-indigo-600'
-                        }`
-                      }
-                    >
-                      {({ isActive }) => (
-                        <>
-                          <Icon className='mr-3 h-5 w-5' />
-                          {item.label}
-                          {isActive && (
-                            <span className='ml-auto h-2 w-2 rounded-full bg-indigo-500'></span>
-                          )}
-                        </>
-                      )}
-                    </NavLink>
-                  </li>
-                );
-              })}
+              {navItems
+                .filter((item) => item.roles.includes(user?.role))
+                .map((item) => {
+                  const Icon = item.icon;
+                  return (
+                    <li key={item.to}>
+                      <NavLink
+                        to={item.to}
+                        end={item.to === '/'}
+                        onClick={closeMobileMenu}
+                        className={({ isActive }) =>
+                          `group flex items-center rounded-xl px-4 py-3 text-sm font-medium transition-all duration-200 ${
+                            isActive
+                              ? 'bg-gradient-to-r from-indigo-50 to-purple-50 text-indigo-700 shadow-sm'
+                              : 'text-gray-600 hover:bg-gray-50 hover:text-indigo-600'
+                          }`
+                        }
+                      >
+                        {({ isActive }) => (
+                          <>
+                            <Icon className='mr-3 h-5 w-5' />
+                            {item.label}
+                            {isActive && (
+                              <span className='ml-auto h-2 w-2 rounded-full bg-indigo-500'></span>
+                            )}
+                          </>
+                        )}
+                      </NavLink>
+                    </li>
+                  );
+                })}
             </ul>
           </nav>
 
@@ -191,68 +229,67 @@ export default function Layout() {
               </div>
               <nav className='p-4 flex-1'>
                 <ul className='space-y-1'>
-                  <li>
-                    <NavLink
-                      to='/tran'
-                      onClick={closeMobileMenu}
-                      className={({ isActive }) =>
-                        `group flex items-center rounded-xl px-4 py-3 text-sm font-medium transition-all duration-200 ${
-                          isActive
-                            ? 'bg-gradient-to-r from-indigo-50 to-purple-50 text-indigo-700 shadow-sm'
-                            : 'text-gray-600 hover:bg-gray-50 hover:text-indigo-600'
-                        }`
-                      }
-                    >
-                      {({ isActive }) => (
-                        <>
-                          <RiExchangeDollarLine
-                            className={`mr-3 h-5 w-5 ${
-                              isActive ? 'text-indigo-500' : 'text-gray-400'
-                            }`}
-                          />
-                          Transactions
-                          {isActive && (
-                            <span className='ml-auto h-2 w-2 rounded-full bg-indigo-500'></span>
-                          )}
-                        </>
-                      )}
-                    </NavLink>
-                  </li>
-                  {navItems.map((item) => {
-                    const Icon = item.icon;
-                    return (
-                      <li key={item.to}>
-                        <NavLink
-                          to={item.to}
-                          end={item.to === '/'}
-                          onClick={closeMobileMenu}
-                          className={({ isActive }) =>
-                            `group flex items-center rounded-xl px-4 py-3 text-sm font-medium transition-all duration-200 ${
-                              isActive
-                                ? 'bg-gradient-to-r from-indigo-50 to-purple-50 text-indigo-700 shadow-sm'
-                                : 'text-gray-600 hover:bg-gray-50 hover:text-indigo-600'
-                            }`
-                          }
-                        >
-                          {({ isActive }) => (
-                            <>
-                              <Icon
-                                className={`mr-3 h-5 w-5 ${
-                                  isActive
-                                    ? 'text-indigo-500'
-                                    : 'text-gray-400 group-hover:text-indigo-500'
-                                }`}
-                              />
-                              {item.label}
-                              {isActive && (
-                                <span className='ml-auto h-2 w-2 rounded-full bg-indigo-500'></span>
-                              )}
-                            </>
-                          )}
-                        </NavLink>
-                      </li>
-                    );
-                  })}
+                  {/* Transactions link in mobile menu - only visible to admin */}
+                  {user?.role === 'admin' && (
+                    <li>
+                      <NavLink
+                        to='/tran'
+                        onClick={closeMobileMenu}
+                        className={({ isActive }) =>
+                          `group flex items-center rounded-xl px-4 py-3 text-sm font-medium transition-all duration-200 ${
+                            isActive
+                              ? 'bg-gradient-to-r from-indigo-50 to-purple-50 text-indigo-700 shadow-sm'
+                              : 'text-gray-600 hover:bg-gray-50 hover:text-indigo-600'
+                          }`
+                        }
+                      >
+                        {({ isActive }) => (
+                          <>
+                            <RiExchangeDollarLine
+                              className={`mr-3 h-5 w-5 ${
+                                isActive ? 'text-indigo-500' : 'text-gray-400'
+                              }`}
+                            />
+                            Transactions
+                            {isActive && (
+                              <span className='ml-auto h-2 w-2 rounded-full bg-indigo-500'></span>
+                            )}
+                          </>
+                        )}
+                      </NavLink>
+                    </li>
+                  )}
+                  {navItems
+                    .filter((item) => item.roles.includes(user?.role))
+                    .map((item) => {
+                      const Icon = item.icon;
+                      return (
+                        <li key={item.to}>
+                          <NavLink
+                            to={item.to}
+                            end={item.to === '/'}
+                            onClick={closeMobileMenu}
+                            className={({ isActive }) =>
+                              `group flex items-center rounded-xl px-4 py-3 text-sm font-medium transition-all duration-200 ${
+                                isActive
+                                  ? 'bg-gradient-to-r from-indigo-50 to-purple-50 text-indigo-700 shadow-sm'
+                                  : 'text-gray-600 hover:bg-gray-50 hover:text-indigo-600'
+                              }`
+                            }
+                          >
+                            {({ isActive }) => (
+                              <>
+                                <Icon className='mr-3 h-5 w-5' />
+                                {item.label}
+                                {isActive && (
+                                  <span className='ml-auto h-2 w-2 rounded-full bg-indigo-500'></span>
+                                )}
+                              </>
+                            )}
+                          </NavLink>
+                        </li>
+                      );
+                    })}
                 </ul>
               </nav>
 
@@ -279,7 +316,7 @@ export default function Layout() {
           </>
         )}
 
-        {/* Main content – fills remaining space, no scrollbars */}
+        {/* Main content */}
         <main className='flex-1 overflow-hidden bg-slate-50/50 p-4 sm:p-6'>
           <div className='rounded-2xl border-gray-100/80 bg-white p-4 sm:p-6 shadow-xl shadow-gray-200/50 backdrop-blur-sm h-full flex flex-col'>
             <Outlet />
@@ -292,7 +329,7 @@ export default function Layout() {
         © {new Date().getFullYear()} MediTrack. All rights reserved.
       </footer>
 
-      {/* User Modal with overlay */}
+      {/* User Modal */}
       {userModalOpen && user && (
         <>
           <div

@@ -6,29 +6,50 @@ import {
   FiMail,
   FiLock,
   FiUserPlus,
-  FiArrowRight,
+  FiPhone,
+  FiHome,
+  FiLoader,
+  FiEye,
+  FiEyeOff,
+  FiAlertCircle,
 } from 'react-icons/fi';
 
 export default function Register() {
   const [name, setName] = useState('');
+  const [pharmacyName, setPharmacyName] = useState('');
+  const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [passwordConfirmation, setPasswordConfirmation] = useState('');
   const [validationErrors, setValidationErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
   const { register, error } = useAuth();
   const navigate = useNavigate();
 
   const validate = () => {
     const errors = {};
-    if (!name.trim()) errors.name = 'Name is required';
+
+    if (!pharmacyName.trim()) errors.pharmacyName = 'Pharmacy name is required';
+    if (!name.trim()) errors.name = 'Owner name is required';
+    if (!phone.trim()) errors.phone = 'Phone number is required';
+    // Optional: basic Afghan phone validation (accepts +93 or 0 starting)
+    else if (!/^(\+93|0)?\d{9,10}$/.test(phone.replace(/\s/g, '')))
+      errors.phone = 'Enter a valid Afghan phone number (e.g., 0798 123 456)';
+
     if (!email.trim()) errors.email = 'Email is required';
-    else if (!/\S+@\S+\.\S+/.test(email)) errors.email = 'Email is invalid';
+    else if (!/\S+@\S+\.\S+/.test(email))
+      errors.email = 'Please enter a valid email address';
+
     if (!password) errors.password = 'Password is required';
     else if (password.length < 6)
       errors.password = 'Password must be at least 6 characters';
+
     if (password !== passwordConfirmation)
       errors.passwordConfirmation = 'Passwords do not match';
+
     setValidationErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -36,193 +57,267 @@ export default function Register() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validate()) return;
+
     setIsSubmitting(true);
-    const result = await register(name, email, password);
+
+    const result = await register(name, email, password, pharmacyName, phone);
+
     setIsSubmitting(false);
+
     if (result.success) navigate('/dashboard');
+  };
+
+  const getInputClasses = (fieldName) => {
+    const baseClasses =
+      'w-full pl-10 pr-3 py-3 border rounded-xl shadow-sm focus:outline-none focus:ring-2 transition-all duration-200';
+    const errorClasses = validationErrors[fieldName]
+      ? 'border-red-300 focus:border-red-500 focus:ring-red-100 bg-red-50/30'
+      : 'border-gray-200 focus:border-blue-400 focus:ring-blue-100 hover:border-gray-300';
+    return `${baseClasses} ${errorClasses}`;
+  };
+
+  const getPasswordInputClasses = (fieldName) => {
+    const baseClasses =
+      'w-full pl-10 pr-10 py-3 border rounded-xl shadow-sm focus:outline-none focus:ring-2 transition-all duration-200';
+    const errorClasses = validationErrors[fieldName]
+      ? 'border-red-300 focus:border-red-500 focus:ring-red-100 bg-red-50/30'
+      : 'border-gray-200 focus:border-blue-400 focus:ring-blue-100 hover:border-gray-300';
+    return `${baseClasses} ${errorClasses}`;
   };
 
   return (
     <div className='min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 p-4 relative overflow-hidden'>
-      {/* Animated background blobs */}
-      <div className='absolute inset-0 overflow-hidden'>
-        <div className='absolute -top-40 -right-40 w-80 h-80 bg-blue-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob'></div>
-        <div className='absolute -bottom-40 -left-40 w-80 h-80 bg-indigo-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-2000'></div>
-        <div className='absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-purple-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-4000'></div>
+      {/* Decorative background elements */}
+      <div className='absolute inset-0 overflow-hidden pointer-events-none'>
+        <div className='absolute -top-40 -right-40 w-80 h-80 bg-blue-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-pulse'></div>
+        <div className='absolute -bottom-40 -left-40 w-80 h-80 bg-indigo-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-pulse delay-1000'></div>
       </div>
 
       <div className='max-w-md w-full relative z-10'>
-        <div className='bg-white/80 backdrop-blur-xl rounded-2xl shadow-2xl p-8 border border-white/20 transition-all duration-300 hover:shadow-3xl'>
+        <div className='bg-white/90 backdrop-blur-sm rounded-2xl shadow-2xl p-6 md:p-8 border border-white/20 transition-all duration-300 hover:shadow-3xl'>
+          {/* Header Section */}
           <div className='text-center mb-8'>
-            <div className='inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-2xl shadow-lg mb-4'>
-              <FiUserPlus className='w-8 h-8 text-white' />
+            <div className='inline-flex items-center justify-center p-3 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl shadow-lg mb-4'>
+              <FiUserPlus className='text-white text-3xl' />
             </div>
-            <h2 className='text-3xl font-bold text-gray-900 mb-2'>
-              Create account
+            <h2 className='text-2xl md:text-3xl font-bold bg-gradient-to-r from-slate-800 to-slate-900 bg-clip-text text-transparent'>
+              Create Account
             </h2>
-            <p className='text-gray-600'>Join us to manage your pharmacy</p>
+            <p className='text-gray-500 text-sm mt-2'>
+              Join Afghan pharmacies using our platform
+            </p>
           </div>
 
           <form onSubmit={handleSubmit} className='space-y-5'>
-            <div>
-              <label className='block text-sm font-medium text-gray-700 mb-2'>
-                Full name
+            {/* Pharmacy Name Field - Afghanistan specific placeholder */}
+            <div className='space-y-1'>
+              <label className='text-sm font-medium text-gray-700 flex items-center gap-1'>
+                <FiHome className='text-gray-400 text-sm' />
+                Pharmacy Name
               </label>
-              <div className='relative'>
+              <div className='relative group'>
                 <div className='absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none'>
-                  <FiUser className='h-5 w-5 text-gray-400' />
+                  <FiHome className='text-gray-400 group-focus-within:text-blue-500 transition-colors' />
                 </div>
                 <input
                   type='text'
+                  placeholder='e.g., Kabul Medical Store, Ariana Pharmacy'
+                  value={pharmacyName}
+                  onChange={(e) => setPharmacyName(e.target.value)}
+                  className={getInputClasses('pharmacyName')}
+                />
+              </div>
+              {validationErrors.pharmacyName && (
+                <p className='text-red-500 text-xs flex items-center gap-1 mt-1'>
+                  <FiAlertCircle className='text-xs' />
+                  {validationErrors.pharmacyName}
+                </p>
+              )}
+            </div>
+
+            {/* Owner Name Field - Afghan name placeholder */}
+            <div className='space-y-1'>
+              <label className='text-sm font-medium text-gray-700 flex items-center gap-1'>
+                <FiUser className='text-gray-400 text-sm' />
+                Owner Full Name
+              </label>
+              <div className='relative group'>
+                <div className='absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none'>
+                  <FiUser className='text-gray-400 group-focus-within:text-blue-500 transition-colors' />
+                </div>
+                <input
+                  type='text'
+                  placeholder='e.g., Ahmad Khan, Fatima Noori'
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className={`block w-full pl-10 pr-3 py-3 border rounded-xl bg-white/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ${
-                    validationErrors.name ? 'border-red-300' : 'border-gray-200'
-                  }`}
-                  placeholder='John Doe'
-                  required
+                  className={getInputClasses('name')}
                 />
               </div>
               {validationErrors.name && (
-                <p className='mt-1 text-sm text-red-600'>
+                <p className='text-red-500 text-xs flex items-center gap-1 mt-1'>
+                  <FiAlertCircle className='text-xs' />
                   {validationErrors.name}
                 </p>
               )}
             </div>
 
-            <div>
-              <label className='block text-sm font-medium text-gray-700 mb-2'>
-                Email address
+            {/* Phone Field - Afghan phone placeholder */}
+            <div className='space-y-1'>
+              <label className='text-sm font-medium text-gray-700 flex items-center gap-1'>
+                <FiPhone className='text-gray-400 text-sm' />
+                Phone Number (Afghanistan)
               </label>
-              <div className='relative'>
+              <div className='relative group'>
                 <div className='absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none'>
-                  <FiMail className='h-5 w-5 text-gray-400' />
+                  <FiPhone className='text-gray-400 group-focus-within:text-blue-500 transition-colors' />
+                </div>
+                <input
+                  type='tel'
+                  placeholder='0798 123 456 or +93 79 123 4567'
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  className={getInputClasses('phone')}
+                />
+              </div>
+              {validationErrors.phone && (
+                <p className='text-red-500 text-xs flex items-center gap-1 mt-1'>
+                  <FiAlertCircle className='text-xs' />
+                  {validationErrors.phone}
+                </p>
+              )}
+            </div>
+
+            {/* Email Field */}
+            <div className='space-y-1'>
+              <label className='text-sm font-medium text-gray-700 flex items-center gap-1'>
+                <FiMail className='text-gray-400 text-sm' />
+                Email Address
+              </label>
+              <div className='relative group'>
+                <div className='absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none'>
+                  <FiMail className='text-gray-400 group-focus-within:text-blue-500 transition-colors' />
                 </div>
                 <input
                   type='email'
+                  placeholder='example@pharmacy.af'
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className={`block w-full pl-10 pr-3 py-3 border rounded-xl bg-white/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ${
-                    validationErrors.email
-                      ? 'border-red-300'
-                      : 'border-gray-200'
-                  }`}
-                  placeholder='you@example.com'
-                  required
+                  className={getInputClasses('email')}
                 />
               </div>
               {validationErrors.email && (
-                <p className='mt-1 text-sm text-red-600'>
+                <p className='text-red-500 text-xs flex items-center gap-1 mt-1'>
+                  <FiAlertCircle className='text-xs' />
                   {validationErrors.email}
                 </p>
               )}
             </div>
 
-            <div>
-              <label className='block text-sm font-medium text-gray-700 mb-2'>
+            {/* Password Field */}
+            <div className='space-y-1'>
+              <label className='text-sm font-medium text-gray-700 flex items-center gap-1'>
+                <FiLock className='text-gray-400 text-sm' />
                 Password
               </label>
-              <div className='relative'>
+              <div className='relative group'>
                 <div className='absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none'>
-                  <FiLock className='h-5 w-5 text-gray-400' />
+                  <FiLock className='text-gray-400 group-focus-within:text-blue-500 transition-colors' />
                 </div>
                 <input
-                  type='password'
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder='••••••••'
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className={`block w-full pl-10 pr-3 py-3 border rounded-xl bg-white/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ${
-                    validationErrors.password
-                      ? 'border-red-300'
-                      : 'border-gray-200'
-                  }`}
-                  placeholder='••••••••'
-                  required
+                  className={getPasswordInputClasses('password')}
                 />
+                <button
+                  type='button'
+                  onClick={() => setShowPassword(!showPassword)}
+                  className='absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 transition-colors'
+                >
+                  {showPassword ? <FiEyeOff size={18} /> : <FiEye size={18} />}
+                </button>
               </div>
               {validationErrors.password && (
-                <p className='mt-1 text-sm text-red-600'>
+                <p className='text-red-500 text-xs flex items-center gap-1 mt-1'>
+                  <FiAlertCircle className='text-xs' />
                   {validationErrors.password}
                 </p>
               )}
             </div>
 
-            <div>
-              <label className='block text-sm font-medium text-gray-700 mb-2'>
-                Confirm password
+            {/* Confirm Password Field */}
+            <div className='space-y-1'>
+              <label className='text-sm font-medium text-gray-700 flex items-center gap-1'>
+                <FiLock className='text-gray-400 text-sm' />
+                Confirm Password
               </label>
-              <div className='relative'>
+              <div className='relative group'>
                 <div className='absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none'>
-                  <FiLock className='h-5 w-5 text-gray-400' />
+                  <FiLock className='text-gray-400 group-focus-within:text-blue-500 transition-colors' />
                 </div>
                 <input
-                  type='password'
+                  type={showConfirmPassword ? 'text' : 'password'}
+                  placeholder='••••••••'
                   value={passwordConfirmation}
                   onChange={(e) => setPasswordConfirmation(e.target.value)}
-                  className={`block w-full pl-10 pr-3 py-3 border rounded-xl bg-white/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ${
-                    validationErrors.passwordConfirmation
-                      ? 'border-red-300'
-                      : 'border-gray-200'
-                  }`}
-                  placeholder='••••••••'
-                  required
+                  className={getPasswordInputClasses('passwordConfirmation')}
                 />
+                <button
+                  type='button'
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className='absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 transition-colors'
+                >
+                  {showConfirmPassword ? (
+                    <FiEyeOff size={18} />
+                  ) : (
+                    <FiEye size={18} />
+                  )}
+                </button>
               </div>
               {validationErrors.passwordConfirmation && (
-                <p className='mt-1 text-sm text-red-600'>
+                <p className='text-red-500 text-xs flex items-center gap-1 mt-1'>
+                  <FiAlertCircle className='text-xs' />
                   {validationErrors.passwordConfirmation}
                 </p>
               )}
             </div>
 
+            {/* API Error Display */}
             {error && (
-              <div className='bg-red-50 border border-red-200 rounded-xl p-4 animate-shake'>
-                <p className='text-sm text-red-600'>{error}</p>
+              <div className='bg-red-50 border border-red-200 rounded-xl p-3 flex items-center gap-2 text-red-700 text-sm'>
+                <FiAlertCircle className='flex-shrink-0' />
+                <span>{error}</span>
               </div>
             )}
 
+            {/* Submit Button */}
             <button
               type='submit'
               disabled={isSubmitting}
-              className='w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3 rounded-xl font-semibold hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transform hover:-translate-y-0.5'
+              className='w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3.5 rounded-xl font-medium shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center justify-center gap-2'
             >
               {isSubmitting ? (
-                <span className='flex items-center justify-center'>
-                  <svg
-                    className='animate-spin -ml-1 mr-2 h-5 w-5 text-white'
-                    fill='none'
-                    viewBox='0 0 24 24'
-                  >
-                    <circle
-                      className='opacity-25'
-                      cx='12'
-                      cy='12'
-                      r='10'
-                      stroke='currentColor'
-                      strokeWidth='4'
-                    ></circle>
-                    <path
-                      className='opacity-75'
-                      fill='currentColor'
-                      d='M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z'
-                    ></path>
-                  </svg>
+                <>
+                  <FiLoader className='animate-spin' />
                   Creating account...
-                </span>
+                </>
               ) : (
-                <span className='flex items-center justify-center'>
-                  Create account
-                  <FiArrowRight className='ml-2 h-4 w-4' />
-                </span>
+                <>
+                  <FiUserPlus />
+                  Create Pharmacy Account
+                </>
               )}
             </button>
 
-            <p className='text-center text-sm text-gray-600'>
+            {/* Login Link */}
+            <p className='text-center text-sm text-gray-600 pt-2'>
               Already have an account?{' '}
               <Link
                 to='/login'
-                className='text-blue-600 hover:text-blue-700 font-medium transition-colors'
+                className='font-medium text-blue-600 hover:text-indigo-600 transition-colors hover:underline'
               >
-                Sign in
+                Sign in instead
               </Link>
             </p>
           </form>

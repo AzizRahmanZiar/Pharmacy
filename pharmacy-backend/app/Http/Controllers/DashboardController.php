@@ -9,35 +9,38 @@ use App\Models\PurchaseDetail;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 
-class DashboardController extends Controller
-{
-    public function index()
-    {
-        $userId = Auth::id();
+class DashboardController extends Controller{
 
-        // Purchases (via purchase table)
-        $totalPurchases = PurchaseDetail::whereHas('purchase', function ($q) use ($userId) {
-            $q->where('user_id', $userId);
+    public function index(){
+        $user = Auth::user();
+        if (!$user || !$user->pharmacy_id) {
+            return response()->json(['error' => 'Unauthorized or missing pharmacy'], 401);
+        }
+
+        $pharmacyId = $user->pharmacy_id;
+
+        // Purchases – filter by pharmacy_id via the purchase relation
+        $totalPurchases = PurchaseDetail::whereHas('purchase', function ($q) use ($pharmacyId) {
+            $q->where('pharmacy_id', $pharmacyId);
         })->sum('total_buyer_price');
 
-        $totalProfit = PurchaseDetail::whereHas('purchase', function ($q) use ($userId) {
-            $q->where('user_id', $userId);
+        $totalProfit = PurchaseDetail::whereHas('purchase', function ($q) use ($pharmacyId) {
+            $q->where('pharmacy_id', $pharmacyId);
         })->sum('total_profit');
 
-        // Expenses (direct)
-        $totalExpenses = Expense::where('user_id', $userId)
-            ->sum('amount');
+        // Expenses – directly filter by pharmacy_id
+        $totalExpenses = Expense::where('pharmacy_id', $pharmacyId)->sum('amount');
 
         $netProfit = $totalProfit - $totalExpenses;
 
-        // Medicines (direct)
-        $lowStock = Medicine::where('user_id', $userId)
+        // Medicines
+        $lowStock = Medicine::where('pharmacy_id', $pharmacyId)
             ->where('quantity', '>', 0)
             ->where('quantity', '<', 100)
             ->get();
 
         // Near expiry
-        $nearExpiry = Medicine::where('user_id', $userId)
+        $nearExpiry = Medicine::where('pharmacy_id', $pharmacyId)
             ->whereNotNull('expiry_date')
             ->where('quantity', '>', 0)
             ->whereBetween('expiry_date', [
@@ -47,31 +50,21 @@ class DashboardController extends Controller
             ->orderBy('expiry_date')
             ->get(['id', 'generic', 'expiry_date', 'quantity as stock_quantity']);
 
-            //Doctor totals
-            $totalConsultationFees = Doctor::where('user_id', $userId)->sum('fees');
+        // Doctor totals
+        $totalConsultationFees = Doctor::where('pharmacy_id', $pharmacyId)->sum('fees');
+        $totalSonographyFees   = Doctor::where('pharmacy_id', $pharmacyId)->sum('sonography_fee');
+        $totalEcgFees          = Doctor::where('pharmacy_id', $pharmacyId)->sum('ecg_fee');
+        $totalXrayFees         = Doctor::where('pharmacy_id', $pharmacyId)->sum('xray_fee');
 
-            $totalSonographyFees = Doctor::where('user_id', $userId)->sum('sonography_fee');
-
-            $totalEcgFees = Doctor::where('user_id', $userId)->sum('ecg_fee');
-
-            $totalXrayFees = Doctor::where('user_id', $userId)->sum('xray_fee');
-
-            //Grand total (optional but VERY useful)
-            $totalDoctorIncome =
-                $totalConsultationFees +
-                $totalSonographyFees +
-                $totalEcgFees +
-                $totalXrayFees;
+        $totalDoctorIncome = $totalConsultationFees + $totalSonographyFees + $totalEcgFees + $totalXrayFees;
 
         return response()->json([
-            'totalPurchases' => $totalPurchases,
-            'totalProfit'    => $totalProfit,
-            'totalExpenses'  => $totalExpenses,
-            'netProfit'      => $netProfit,
-            'lowStock'       => $lowStock,
-            'nearExpiry'     => $nearExpiry,
-
-            // Doctor data
+            'totalPurchases'        => $totalPurchases,
+            'totalProfit'           => $totalProfit,
+            'totalExpenses'         => $totalExpenses,
+            'netProfit'             => $netProfit,
+            'lowStock'              => $lowStock,
+            'nearExpiry'            => $nearExpiry,
             'totalConsultationFees' => $totalConsultationFees,
             'totalSonographyFees'   => $totalSonographyFees,
             'totalEcgFees'          => $totalEcgFees,

@@ -10,11 +10,10 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 
-class PurchaseController extends Controller
-{
-    public function index(Request $request)
-    {
-        $query = Purchase::where('user_id', Auth::id())
+class PurchaseController extends Controller{
+
+    public function index(Request $request){
+        $query = Purchase::where('pharmacy_id', Auth::user()->pharmacy_id)
             ->withSum('details', 'total_buyer_price')
             ->withSum('details', 'total_profit')
             ->latest();
@@ -26,9 +25,8 @@ class PurchaseController extends Controller
         return response()->json($query->paginate(3));
     }
 
-    public function show($id)
-    {
-        $purchase = Purchase::where('user_id', Auth::id())
+    public function show($id){
+        $purchase = Purchase::where('pharmacy_id', Auth::user()->pharmacy_id)
             ->with('details')
             ->find($id);
 
@@ -41,11 +39,11 @@ class PurchaseController extends Controller
 
 
     public function formData(){
-        $generic = MedicineItem::where('user_id', Auth::id())->select('generic')->distinct()->get();
-        $brand = MedicineItem::where('user_id', Auth::id())->select('brand')->distinct()->get();
-        $dosage = MedicineItem::where('user_id', Auth::id())->select('dosage')->distinct()->get();
-        $strength = MedicineItem::where('user_id', Auth::id())->select('strength')->distinct()->get();
-        $route = MedicineItem::where('user_id', Auth::id())->select('route')->distinct()->get();
+        $generic = MedicineItem::where('pharmacy_id', Auth::user()->pharmacy_id)->select('generic')->distinct()->get();
+        $brand = MedicineItem::where('pharmacy_id', Auth::user()->pharmacy_id)->select('brand')->distinct()->get();
+        $dosage = MedicineItem::where('pharmacy_id', Auth::user()->pharmacy_id)->select('dosage')->distinct()->get();
+        $strength = MedicineItem::where('pharmacy_id', Auth::user()->pharmacy_id)->select('strength')->distinct()->get();
+        $route = MedicineItem::where('pharmacy_id', Auth::user()->pharmacy_id)->select('route')->distinct()->get();
 
         return response()->json([
             'generic' => $generic,
@@ -56,15 +54,13 @@ class PurchaseController extends Controller
         ]);
 }
 
-    public function store(Request $request)
-    {
+    public function store(Request $request){
         $request->validate([
             'bill_no' => 'required|string',
             'purchase_date' => 'required|date',
             'paid_amount' => 'nullable|numeric|min:0',
             'medicines' => 'required|array',
 
-            // ✅ YOUR NEW FIELDS
             'medicines.*.generic' => 'required|string|max:255',
             'medicines.*.brand' => 'required|string|max:255',
             'medicines.*.dosage' => 'required|string|max:255',
@@ -90,6 +86,7 @@ class PurchaseController extends Controller
 
         $purchase = Purchase::create([
             'user_id' => Auth::id(),
+            'pharmacy_id' => Auth::user()->pharmacy_id,
             'bill_no' => $request->bill_no,
             'purchase_date' => $request->purchase_date,
             'total_amount' => $totalAmount,
@@ -107,7 +104,6 @@ class PurchaseController extends Controller
             PurchaseDetail::create([
                 'purchase_id' => $purchase->id,
 
-                // ✅ NEW FIELDS
                 'generic' => $row['generic'],
                 'brand' => $row['brand'],
                 'dosage' => $row['dosage'],
@@ -125,8 +121,7 @@ class PurchaseController extends Controller
 
             Medicine::create([
                 'user_id' => Auth::id(),
-
-                // ✅ NEW FIELDS
+                'pharmacy_id' => Auth::user()->pharmacy_id,
                 'generic' => $row['generic'],
                 'brand' => $row['brand'],
                 'dosage' => $row['dosage'],
@@ -147,8 +142,7 @@ class PurchaseController extends Controller
         ]);
     }
 
-   public function update(Request $request, $id)
-{
+   public function update(Request $request, $id){
     $request->validate([
         'bill_no' => 'required|string',
         'purchase_date' => 'required|date',
@@ -167,14 +161,14 @@ class PurchaseController extends Controller
         'medicines.*.expiry_date' => 'nullable|date',
     ]);
 
-    $purchase = Purchase::where('user_id', Auth::id())
+    $purchase = Purchase::where('pharmacy_id', Auth::user()->pharmacy_id)
         ->with('details')
         ->findOrFail($id);
 
-    // ✅ STEP 1: REVERSE OLD STOCK
     foreach ($purchase->details as $old) {
         $medicine = Medicine::where([
             'user_id' => Auth::id(),
+            'pharmacy_id' => Auth::user()->pharmacy_id,
             'generic' => $old->generic,
             'brand' => $old->brand,
             'dosage' => $old->dosage,
@@ -194,10 +188,8 @@ class PurchaseController extends Controller
         }
     }
 
-    // ✅ delete old details
     $purchase->details()->delete();
 
-    // ✅ STEP 2: CALCULATE NEW TOTAL
     $totalAmount = 0;
     foreach ($request->medicines as $row) {
         $totalAmount += $row['quantity'] * $row['buy_price'];
@@ -218,7 +210,6 @@ class PurchaseController extends Controller
         'payment_status' => $status,
     ]);
 
-    // ✅ STEP 3: ADD NEW STOCK
     foreach ($request->medicines as $row) {
 
         $totalBuyerPrice = $row['quantity'] * $row['buy_price'];
@@ -243,6 +234,7 @@ class PurchaseController extends Controller
 
         $medicine = Medicine::firstOrCreate([
             'user_id' => Auth::id(),
+            'pharmacy_id' => Auth::user()->pharmacy_id,
             'generic' => $row['generic'],
             'brand' => $row['brand'],
             'dosage' => $row['dosage'],
@@ -253,7 +245,6 @@ class PurchaseController extends Controller
             'quantity' => 0,
         ]);
 
-        // ✅ ADD quantity instead of overwrite
         $medicine->quantity += $row['quantity'];
         $medicine->sale_price = $row['sale_price'];
         $medicine->expiry_date = $row['expiry_date'] ?? null;
@@ -264,16 +255,15 @@ class PurchaseController extends Controller
     return response()->json(['success' => true]);
 }
 
-    public function destroy($id)
-{
-    $purchase = Purchase::where('user_id', Auth::id())
+    public function destroy($id){
+    $purchase = Purchase::where('pharmacy_id', Auth::user()->pharmacy_id)
         ->with('details')
         ->findOrFail($id);
 
-    // ✅ reverse stock
     foreach ($purchase->details as $detail) {
         $medicine = Medicine::where([
             'user_id' => Auth::id(),
+            'pharmacy_id' => Auth::user()->pharmacy_id,
             'generic' => $detail->generic,
             'brand' => $detail->brand,
             'dosage' => $detail->dosage,
@@ -302,33 +292,26 @@ class PurchaseController extends Controller
     ]);
 }
 
+    public function purchaseTableReport(Request $request){
+        $status = $request->query('status');
 
+        $query = Purchase::withSum('details', 'total_buyer_price')
+            ->withSum('details', 'total_profit');
 
+        if ($status && $status !== 'all') {
+            $query->where('payment_status', $status);
+        }
 
+        $purchases = $query->orderBy('id', 'desc')->get();
 
+        $currentDateTime = Carbon::now('Asia/Kabul')->format('F j, Y, g:i A');
 
-public function purchaseTableReport(Request $request)
-{
-    $status = $request->query('status'); // paid, partial, pending, all
+        $pdf = Pdf::loadView('reports.purchase-table', [
+            'purchases'       => $purchases,
+            'status'          => $status ?? 'all',
+            'currentDateTime' => $currentDateTime,
+        ]);
 
-    $query = Purchase::withSum('details', 'total_buyer_price')
-        ->withSum('details', 'total_profit');
-
-    if ($status && $status !== 'all') {
-        $query->where('payment_status', $status);
+        return $pdf->download('purchase-report-' . ($status ?? 'all') . '.pdf');
     }
-
-    $purchases = $query->orderBy('id', 'desc')->get();
-
-    // Generate current date/time in your timezone
-    $currentDateTime = Carbon::now('Asia/Kabul')->format('F j, Y, g:i A');
-
-    $pdf = Pdf::loadView('reports.purchase-table', [
-        'purchases'       => $purchases,
-        'status'          => $status ?? 'all',
-        'currentDateTime' => $currentDateTime, // Pass to view
-    ]);
-
-    return $pdf->download('purchase-report-' . ($status ?? 'all') . '.pdf');
-}
 }

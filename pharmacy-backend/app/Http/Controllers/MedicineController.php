@@ -7,16 +7,13 @@ use Illuminate\Support\Facades\Auth;
 
 class MedicineController extends Controller{
 
- // app/Http/Controllers/MedicineController.php
+    public function index(Request $request){
+        $query = Medicine::where('pharmacy_id', Auth::user()->pharmacy_id)
+            ->where('quantity', '>', 0);
+            
+        $medicines = $query->latest()->paginate(4);
 
-public function index(Request $request){
-    $query = Medicine::where('user_id', Auth::id())
-        ->where('quantity', '>', 0);
-
-    // If you need pagination:
-    $medicines = $query->latest()->paginate(4);
-
-    return response()->json($medicines);
-}
+        return response()->json($medicines);
+    }
 }
 

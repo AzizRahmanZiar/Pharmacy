@@ -9,14 +9,12 @@ use App\Models\Expense;
 use App\Models\Medicine;
 use Illuminate\Support\Facades\Auth;
 
-class TransactionController extends Controller
-{
+class TransactionController extends Controller{
 
-   public function index()
-{
-    $userId = Auth::id();
+   public function index(){
+    $pharmacyId = Auth::user()->pharmacy_id;
 
-    $sales = Sale::where('user_id', $userId)->latest()->get()->map(function ($sale) {
+    $sales = Sale::where('pharmacy_id', $pharmacyId)->latest()->get()->map(function ($sale) {
         return [
             'type' => 'sale',
             'id' => $sale->id,
@@ -26,7 +24,7 @@ class TransactionController extends Controller
         ];
     });
 
-    $purchases = Purchase::where('user_id', $userId)
+    $purchases = Purchase::where('pharmacy_id', $pharmacyId)
         ->with('Details')
         ->latest()
         ->get()
@@ -40,7 +38,7 @@ class TransactionController extends Controller
             ];
         });
 
-    $expenses = Expense::where('user_id', $userId)->latest()->get()->map(function ($expense) {
+    $expenses = Expense::where('pharmacy_id', $pharmacyId)->latest()->get()->map(function ($expense) {
         return [
             'type' => 'expense',
             'id' => $expense->id,
@@ -50,18 +48,15 @@ class TransactionController extends Controller
         ];
     });
 
-            // New: Doctor fees transactions
-        $doctors = Doctor::where('user_id', $userId)
+        $doctors = Doctor::where('pharmacy_id', $pharmacyId)
             ->latest()
             ->get()
             ->map(function ($doctor) {
-                // Total amount = consultation + optional test fees
                 $total = $doctor->fees
                     + ($doctor->sonography_fee ?? 0)
                     + ($doctor->ecg_fee ?? 0)
                     + ($doctor->xray_fee ?? 0);
 
-                // Description: use doctor name if available, else fallback to description
                 $description = $doctor->name
                     ? 'Doctor Fees: ' . $doctor->name
                     : 'Doctor Fees (ID: ' . $doctor->id . ')';

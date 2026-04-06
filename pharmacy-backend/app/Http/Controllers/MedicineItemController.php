@@ -8,9 +8,10 @@ use Illuminate\Support\Facades\Auth;
 
 class MedicineItemController extends Controller{
 
-
     public function index() {
-    return response()->json(MedicineItem::where('user_id', Auth::id())->paginate(3));
+        return response()->json(
+            MedicineItem::where('pharmacy_id', Auth::user()->pharmacy_id)->paginate(3)
+        );
     }
 
     public function store(Request $request){
@@ -19,11 +20,12 @@ class MedicineItemController extends Controller{
             'brand' => 'required|string|max:255',
             'dosage' => 'required|string|max:255',
             'strength' => 'required|string|max:255',
-             'route' => 'required|string|max:255',
+            'route' => 'required|string|max:255',
         ]);
 
         $item = MedicineItem::create([
             'user_id' => Auth::id(),
+            'pharmacy_id' => Auth::user()->pharmacy_id,
             'generic' => $request->generic,
             'brand' => $request->brand,
             'dosage' => $request->dosage,
@@ -35,27 +37,26 @@ class MedicineItemController extends Controller{
     }
 
     public function destroy($id){
-    $item = MedicineItem::where('user_id', Auth::id())->findOrFail($id);
+        $item = MedicineItem::where('pharmacy_id', Auth::user()->pharmacy_id)
+            ->findOrFail($id);
 
-    $item->delete();
+        $item->delete();
 
-    return response()->json(['message' => 'Deleted successfully']);
+        return response()->json(['message' => 'Deleted successfully']);
     }
 
     public function update(Request $request, $id){
-    $item = MedicineItem::where('user_id', Auth::id())->findOrFail($id);
+        $item = MedicineItem::where('pharmacy_id', Auth::user()->pharmacy_id)
+            ->findOrFail($id);
 
-    $item->update([
-        'generic' => $request->generic,
-        'brand' => $request->brand,
-        'dosage' => $request->dosage,
-        'strength' => $request->strength,
-        'route' => $request->route,
-    ]);
+        $item->update([
+            'generic' => $request->generic,
+            'brand' => $request->brand,
+            'dosage' => $request->dosage,
+            'strength' => $request->strength,
+            'route' => $request->route,
+        ]);
 
-    return response()->json($item);
+        return response()->json($item);
     }
-
-
 }
-

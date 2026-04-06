@@ -8,6 +8,7 @@ class Purchase extends Model
 {
   protected $fillable = [
     'user_id',
+    'pharmacy_id',
     'bill_no',
     'purchase_date',
     'total_amount',

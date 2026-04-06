@@ -6,19 +6,17 @@ use App\Models\Doctor;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
-class DoctorController extends Controller
-{
-    public function index()
-    {
-        $doctors = Doctor::where('user_id', Auth::id())
+class DoctorController extends Controller{
+
+    public function index(){
+        $doctors = Doctor::where('pharmacy_id', Auth::user()->pharmacy_id)
             ->latest()
-            ->paginate(3); // adjust pagination as needed
+            ->paginate(3);
 
         return response()->json($doctors);
     }
 
-    public function store(Request $request)
-    {
+    public function store(Request $request){
         $request->validate([
             'fees' => 'required|numeric|min:0',
             'sonography_fee' => 'nullable|numeric|min:0',
@@ -29,6 +27,7 @@ class DoctorController extends Controller
 
         $doctor = Doctor::create([
             'user_id' => Auth::id(),
+            'pharmacy_id' => Auth::user()->pharmacy_id,
             'fees' => $request->fees,
             'sonography_fee' => $request->sonography_fee,
             'ecg_fee' => $request->ecg_fee,
@@ -39,15 +38,13 @@ class DoctorController extends Controller
         return response()->json($doctor);
     }
 
-    public function show($id)
-{
-    $doctor = Doctor::where('user_id', Auth::id())->findOrFail($id);
+    public function show($id){
+    $doctor = Doctor::where('pharmacy_id', Auth::user()->pharmacy_id)->findOrFail($id);
     return response()->json($doctor);
-}
+    }
 
-    public function update(Request $request, $id)
-    {
-        $doctor = Doctor::where('user_id', Auth::id())
+    public function update(Request $request, $id){
+        $doctor = Doctor::where('pharmacy_id', Auth::user()->pharmacy_id)
             ->findOrFail($id);
 
         $request->validate([
@@ -72,9 +69,8 @@ class DoctorController extends Controller
         ]);
     }
 
-    public function destroy($id)
-    {
-        $doctor = Doctor::where('user_id', Auth::id())
+    public function destroy($id){
+        $doctor = Doctor::where('pharmacy_id', Auth::user()->pharmacy_id)
             ->findOrFail($id);
 
         $doctor->delete();
