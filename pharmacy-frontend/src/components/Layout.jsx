@@ -1,12 +1,19 @@
 import { useState, useRef, useEffect } from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
-import { FiMenu, FiX, FiLogOut, FiUsers } from 'react-icons/fi';
+import {
+  FiMenu,
+  FiX,
+  FiLogOut,
+  FiUsers,
+  FiChevronLeft,
+  FiChevronRight,
+  FiSettings,
+} from 'react-icons/fi';
 import {
   MdDashboard,
   MdLocalPharmacy,
   MdMoneyOff,
   MdLocalHospital,
-  MdSettings,
 } from 'react-icons/md';
 import { FaBoxes, FaShoppingCart, FaShoppingBag } from 'react-icons/fa';
 import { RiExchangeDollarLine } from 'react-icons/ri';
@@ -16,12 +23,14 @@ import { useAuth } from '../context/AuthContext';
 export default function Layout() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userModalOpen, setUserModalOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
   const userButtonRef = useRef(null);
   const modalRef = useRef(null);
   const { user, logout } = useAuth();
 
   const toggleMobileMenu = () => setMobileMenuOpen(!mobileMenuOpen);
   const closeMobileMenu = () => setMobileMenuOpen(false);
+  const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
 
   const openUserModal = () => setUserModalOpen(true);
   const closeUserModal = () => setUserModalOpen(false);
@@ -42,9 +51,11 @@ export default function Layout() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [userModalOpen]);
 
+  // Flat navigation items (Settings removed from here – moved to user section)
   const navItems = [
     { to: '/', icon: MdDashboard, label: 'Dashboard', roles: ['admin'] },
     { to: '/user', icon: FiUsers, label: 'Users', roles: ['admin'] },
+    { to: '/doc', icon: MdLocalHospital, label: 'Doctor', roles: ['admin'] },
     {
       to: '/pharmacy',
       icon: MdLocalPharmacy,
@@ -76,14 +87,54 @@ export default function Layout() {
       roles: ['admin', 'staff'],
     },
     { to: '/expense', icon: MdMoneyOff, label: 'Expense', roles: ['admin'] },
-    { to: '/doc', icon: MdLocalHospital, label: 'Doctor', roles: ['admin'] },
     {
-      to: '/setting',
-      icon: MdSettings,
-      label: 'Setting',
-      roles: ['admin'],
+      to: '/suppliers',
+      icon: FiUsers,
+      label: 'Suppliers',
+      roles: ['admin', 'staff'],
+    },
+    {
+      to: '/payments',
+      icon: RiExchangeDollarLine,
+      label: 'Payments',
+      roles: ['admin', 'staff'],
     },
   ];
+
+  // Filter items based on user role
+  const filteredItems = navItems.filter((item) =>
+    item.roles.includes(user?.role),
+  );
+
+  // Render a single navigation link
+  const renderNavLink = (item, collapsed) => (
+    <NavLink
+      key={item.to}
+      to={item.to}
+      end={item.to === '/'}
+      onClick={closeMobileMenu}
+      className={({ isActive }) =>
+        `group flex items-center rounded-xl px-4 py-3 text-sm font-medium transition-all duration-200 ${
+          isActive
+            ? 'bg-gradient-to-r from-indigo-50 to-purple-50 text-indigo-700 shadow-sm'
+            : 'text-gray-600 hover:bg-gray-50 hover:text-indigo-600'
+        } ${collapsed ? 'justify-center' : ''}`
+      }
+      title={collapsed ? item.label : ''}
+    >
+      {({ isActive }) => (
+        <>
+          <item.icon
+            className={`h-5 w-5 flex-shrink-0 ${collapsed ? 'mr-0' : 'mr-3'}`}
+          />
+          {!collapsed && item.label}
+          {!collapsed && isActive && (
+            <span className='ml-auto h-2 w-2 rounded-full bg-indigo-500'></span>
+          )}
+        </>
+      )}
+    </NavLink>
+  );
 
   return (
     <div className='flex h-screen w-screen flex-col bg-gradient-to-br from-slate-50 to-gray-100 font-sans antialiased overflow-hidden'>
@@ -98,6 +149,18 @@ export default function Layout() {
                 aria-label='Toggle menu'
               >
                 <FiMenu className='h-6 w-6' />
+              </button>
+              {/* Desktop sidebar toggle button */}
+              <button
+                onClick={toggleSidebar}
+                className='hidden lg:flex p-2 rounded-lg hover:bg-gray-100 text-gray-600 transition'
+                aria-label='Toggle sidebar'
+              >
+                {sidebarOpen ? (
+                  <FiChevronLeft className='h-5 w-5' />
+                ) : (
+                  <FiChevronRight className='h-5 w-5' />
+                )}
               </button>
               <div className='flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-purple-500 text-white shadow-md'>
                 <MdLocalPharmacy className='h-6 w-6' />
@@ -154,60 +217,94 @@ export default function Layout() {
       {/* Main container */}
       <div className='flex flex-1 overflow-hidden relative'>
         {/* Desktop sidebar */}
-        <aside className='hidden lg:flex lg:flex-col w-64 overflow-y-auto bg-white/90 backdrop-blur-sm border-r border-gray-200/60 shadow-lg sidebar-scroll'>
-          <nav className='p-4 flex-1'>
+        <aside
+          className={`hidden lg:flex lg:flex-col overflow-hidden bg-white/90 backdrop-blur-sm border-r border-gray-200/60 shadow-lg transition-all duration-300 ease-in-out ${
+            sidebarOpen ? 'w-64' : 'w-20'
+          }`}
+        >
+          {/* Scrollable navigation area */}
+          <nav className='flex-1 overflow-y-auto p-4 sidebar-scroll'>
             <ul className='space-y-1'>
-              {navItems
-                .filter((item) => item.roles.includes(user?.role))
-                .map((item) => {
-                  const Icon = item.icon;
-                  return (
-                    <li key={item.to}>
-                      <NavLink
-                        to={item.to}
-                        end={item.to === '/'}
-                        onClick={closeMobileMenu}
-                        className={({ isActive }) =>
-                          `group flex items-center rounded-xl px-4 py-3 text-sm font-medium transition-all duration-200 ${
-                            isActive
-                              ? 'bg-gradient-to-r from-indigo-50 to-purple-50 text-indigo-700 shadow-sm'
-                              : 'text-gray-600 hover:bg-gray-50 hover:text-indigo-600'
-                          }`
-                        }
-                      >
-                        {({ isActive }) => (
-                          <>
-                            <Icon className='mr-3 h-5 w-5' />
-                            {item.label}
-                            {isActive && (
-                              <span className='ml-auto h-2 w-2 rounded-full bg-indigo-500'></span>
-                            )}
-                          </>
-                        )}
-                      </NavLink>
-                    </li>
-                  );
-                })}
+              {filteredItems.map((item) => (
+                <li key={item.to}>{renderNavLink(item, !sidebarOpen)}</li>
+              ))}
             </ul>
           </nav>
 
-          {user && (
-            <div className='p-4 border-t border-gray-200/60 bg-gray-50/50 mt-auto'>
-              <div className='flex items-center space-x-3'>
-                <div className='flex-shrink-0'>
-                  <div className='h-8 w-8 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 flex items-center justify-center text-white text-sm font-medium'>
-                    {user.name?.charAt(0) || 'U'}
+          {/* User section - fixed at bottom with Settings and Logout */}
+          <div
+            className={`flex-shrink-0 p-4 border-t border-gray-200/60 bg-gray-50/50 transition-all ${!sidebarOpen ? 'flex flex-col items-center space-y-3' : ''}`}
+          >
+            {sidebarOpen ? (
+              // Expanded sidebar: show full user info + settings + logout
+              <>
+                <div className='flex items-center justify-between'>
+                  <div className='flex items-center space-x-3 flex-1'>
+                    <div className='flex-shrink-0'>
+                      <div className='h-8 w-8 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 flex items-center justify-center text-white text-sm font-medium'>
+                        {user?.name?.charAt(0) || 'U'}
+                      </div>
+                    </div>
+                    <div className='flex-1 min-w-0'>
+                      <p className='text-sm font-medium text-gray-900 truncate'>
+                        {user?.name}
+                      </p>
+                      <p className='text-xs text-gray-500 truncate'>
+                        {user?.email}
+                      </p>
+                    </div>
                   </div>
+                  {/* Settings icon (only for admin) */}
+                  {user?.role === 'admin' && (
+                    <NavLink
+                      to='/setting'
+                      className='p-2 rounded-lg text-gray-500 hover:bg-gray-100 hover:text-indigo-600 transition'
+                      title='Settings'
+                    >
+                      <FiSettings className='h-5 w-5' />
+                    </NavLink>
+                  )}
                 </div>
-                <div className='flex-1 min-w-0'>
-                  <p className='text-sm font-medium text-gray-900 truncate'>
-                    {user.name}
-                  </p>
-                  <p className='text-xs text-gray-500 truncate'>{user.email}</p>
+                {/* Logout button */}
+                <button
+                  onClick={() => {
+                    logout();
+                    closeUserModal();
+                  }}
+                  className='mt-2 flex w-full items-center justify-center gap-2 rounded-lg bg-red-50 px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-100 transition'
+                >
+                  <FiLogOut className='h-4 w-4' />
+                  Logout
+                </button>
+              </>
+            ) : (
+              // Collapsed sidebar: show only avatar + settings icon stacked
+              <>
+                <div className='h-8 w-8 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 flex items-center justify-center text-white text-sm font-medium'>
+                  {user?.name?.charAt(0) || 'U'}
                 </div>
-              </div>
-            </div>
-          )}
+                {user?.role === 'admin' && (
+                  <NavLink
+                    to='/setting'
+                    className='p-2 rounded-lg text-gray-500 hover:bg-gray-100 hover:text-indigo-600 transition'
+                    title='Settings'
+                  >
+                    <FiSettings className='h-5 w-5' />
+                  </NavLink>
+                )}
+                <button
+                  onClick={() => {
+                    logout();
+                    closeUserModal();
+                  }}
+                  className='p-2 rounded-lg text-red-500 hover:bg-red-50 transition'
+                  title='Logout'
+                >
+                  <FiLogOut className='h-5 w-5' />
+                </button>
+              </>
+            )}
+          </div>
         </aside>
 
         {/* Mobile menu overlay */}
@@ -228,90 +325,81 @@ export default function Layout() {
                 </button>
               </div>
               <nav className='p-4 flex-1'>
+                {/* Extra Transactions link for admin on mobile */}
+                {user?.role === 'admin' && (
+                  <div className='mb-4'>
+                    <NavLink
+                      to='/tran'
+                      onClick={closeMobileMenu}
+                      className={({ isActive }) =>
+                        `group flex items-center rounded-xl px-4 py-3 text-sm font-medium transition-all duration-200 ${
+                          isActive
+                            ? 'bg-gradient-to-r from-indigo-50 to-purple-50 text-indigo-700 shadow-sm'
+                            : 'text-gray-600 hover:bg-gray-50 hover:text-indigo-600'
+                        }`
+                      }
+                    >
+                      {({ isActive }) => (
+                        <>
+                          <RiExchangeDollarLine
+                            className={`mr-3 h-5 w-5 ${
+                              isActive ? 'text-indigo-500' : 'text-gray-400'
+                            }`}
+                          />
+                          Transactions
+                          {isActive && (
+                            <span className='ml-auto h-2 w-2 rounded-full bg-indigo-500'></span>
+                          )}
+                        </>
+                      )}
+                    </NavLink>
+                  </div>
+                )}
                 <ul className='space-y-1'>
-                  {/* Transactions link in mobile menu - only visible to admin */}
-                  {user?.role === 'admin' && (
-                    <li>
-                      <NavLink
-                        to='/tran'
-                        onClick={closeMobileMenu}
-                        className={({ isActive }) =>
-                          `group flex items-center rounded-xl px-4 py-3 text-sm font-medium transition-all duration-200 ${
-                            isActive
-                              ? 'bg-gradient-to-r from-indigo-50 to-purple-50 text-indigo-700 shadow-sm'
-                              : 'text-gray-600 hover:bg-gray-50 hover:text-indigo-600'
-                          }`
-                        }
-                      >
-                        {({ isActive }) => (
-                          <>
-                            <RiExchangeDollarLine
-                              className={`mr-3 h-5 w-5 ${
-                                isActive ? 'text-indigo-500' : 'text-gray-400'
-                              }`}
-                            />
-                            Transactions
-                            {isActive && (
-                              <span className='ml-auto h-2 w-2 rounded-full bg-indigo-500'></span>
-                            )}
-                          </>
-                        )}
-                      </NavLink>
-                    </li>
-                  )}
-                  {navItems
-                    .filter((item) => item.roles.includes(user?.role))
-                    .map((item) => {
-                      const Icon = item.icon;
-                      return (
-                        <li key={item.to}>
-                          <NavLink
-                            to={item.to}
-                            end={item.to === '/'}
-                            onClick={closeMobileMenu}
-                            className={({ isActive }) =>
-                              `group flex items-center rounded-xl px-4 py-3 text-sm font-medium transition-all duration-200 ${
-                                isActive
-                                  ? 'bg-gradient-to-r from-indigo-50 to-purple-50 text-indigo-700 shadow-sm'
-                                  : 'text-gray-600 hover:bg-gray-50 hover:text-indigo-600'
-                              }`
-                            }
-                          >
-                            {({ isActive }) => (
-                              <>
-                                <Icon className='mr-3 h-5 w-5' />
-                                {item.label}
-                                {isActive && (
-                                  <span className='ml-auto h-2 w-2 rounded-full bg-indigo-500'></span>
-                                )}
-                              </>
-                            )}
-                          </NavLink>
-                        </li>
-                      );
-                    })}
+                  {filteredItems.map((item) => (
+                    <li key={item.to}>{renderNavLink(item, false)}</li>
+                  ))}
                 </ul>
               </nav>
-
-              {user && (
-                <div className='p-4 border-t border-gray-200/60 bg-gray-50/50 mt-auto'>
+              {/* Mobile user section with Settings and Logout */}
+              <div className='p-4 border-t border-gray-200/60 bg-gray-50/50'>
+                <div className='flex items-center justify-between'>
                   <div className='flex items-center space-x-3'>
                     <div className='flex-shrink-0'>
                       <div className='h-8 w-8 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 flex items-center justify-center text-white text-sm font-medium'>
-                        {user.name?.charAt(0) || 'U'}
+                        {user?.name?.charAt(0) || 'U'}
                       </div>
                     </div>
                     <div className='flex-1 min-w-0'>
                       <p className='text-sm font-medium text-gray-900 truncate'>
-                        {user.name}
+                        {user?.name}
                       </p>
                       <p className='text-xs text-gray-500 truncate'>
-                        {user.email}
+                        {user?.email}
                       </p>
                     </div>
                   </div>
+                  {user?.role === 'admin' && (
+                    <NavLink
+                      to='/setting'
+                      onClick={closeMobileMenu}
+                      className='p-2 text-gray-500 hover:text-indigo-600'
+                    >
+                      <FiSettings className='h-5 w-5' />
+                    </NavLink>
+                  )}
                 </div>
-              )}
+                <button
+                  onClick={() => {
+                    logout();
+                    closeMobileMenu();
+                  }}
+                  className='mt-3 flex w-full items-center justify-center gap-2 rounded-lg bg-red-50 px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-100 transition'
+                >
+                  <FiLogOut className='h-4 w-4' />
+                  Logout
+                </button>
+              </div>
             </aside>
           </>
         )}
@@ -329,7 +417,7 @@ export default function Layout() {
         © {new Date().getFullYear()} MediTrack. All rights reserved.
       </footer>
 
-      {/* User Modal */}
+      {/* User Modal (optional, kept for compatibility) */}
       {userModalOpen && user && (
         <>
           <div
@@ -339,10 +427,7 @@ export default function Layout() {
           <div
             ref={modalRef}
             className='fixed z-50 bg-white rounded-xl shadow-xl w-72 p-5'
-            style={{
-              top: '4rem',
-              right: '1rem',
-            }}
+            style={{ top: '4rem', right: '1rem' }}
           >
             <div className='flex flex-col items-center space-y-3'>
               <div className='h-16 w-16 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 flex items-center justify-center text-white text-xl font-semibold'>

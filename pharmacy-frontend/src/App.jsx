@@ -21,6 +21,11 @@ import User from './pages/users/User';
 import Setting from './pages/Setting';
 import { SettingsProvider } from './context/SettingsContext';
 
+// New imports for suppliers and payments
+import Suppliers from './pages/supplier/Suppliers';
+import Payments from './pages/payment/Payments';
+import SupplierLedger from './pages/supplier/SupplierLedger';
+
 function App() {
   return (
     <AuthProvider>
@@ -122,6 +127,32 @@ function App() {
                 element={
                   <RoleBasedRoute allowedRoles={['admin', 'staff']}>
                     <ItemsCreate />
+                  </RoleBasedRoute>
+                }
+              />
+
+              {/* New routes for suppliers and payments */}
+              <Route
+                path='suppliers'
+                element={
+                  <RoleBasedRoute allowedRoles={['admin', 'staff']}>
+                    <Suppliers />
+                  </RoleBasedRoute>
+                }
+              />
+              <Route
+                path='payments'
+                element={
+                  <RoleBasedRoute allowedRoles={['admin', 'staff']}>
+                    <Payments />
+                  </RoleBasedRoute>
+                }
+              />
+              <Route
+                path='suppliers/:id/ledger'
+                element={
+                  <RoleBasedRoute allowedRoles={['admin', 'staff']}>
+                    <SupplierLedger />
                   </RoleBasedRoute>
                 }
               />

@@ -32,7 +32,11 @@ export default function Purchase() {
 
   // Filters
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all'); // 'all', 'pending', 'paid', 'partial'
+  const [statusFilter, setStatusFilter] = useState('all');
+
+  // Supplier data
+  const [suppliers, setSuppliers] = useState([]);
+  const [supplierBalance, setSupplierBalance] = useState(null);
 
   const downloadReport = (status) => {
     window.open(
@@ -43,6 +47,7 @@ export default function Purchase() {
 
   // Form state (shared for create & edit)
   const [form, setForm] = useState({
+    supplier_id: '', // NEW
     bill_no: '',
     purchase_date: new Date().toISOString().slice(0, 10),
     paid_amount: 0,
@@ -67,6 +72,29 @@ export default function Purchase() {
   const [dosage, setDosage] = useState([]);
   const [strength, setStrength] = useState([]);
   const [route, setRoute] = useState([]);
+
+  // Fetch suppliers on mount
+  useEffect(() => {
+    fetchSuppliers();
+  }, []);
+
+  const fetchSuppliers = async () => {
+    try {
+      const res = await api.get('/suppliers');
+      setSuppliers(res.data);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const fetchSupplierBalance = async (id) => {
+    try {
+      const res = await api.get(`/suppliers/${id}/balance`);
+      setSupplierBalance(res.data.balance);
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   // Lock body scroll when any modal is open
   useEffect(() => {
@@ -160,6 +188,7 @@ export default function Purchase() {
 
   const resetForm = () => {
     setForm({
+      supplier_id: '',
       bill_no: '',
       purchase_date: new Date().toISOString().slice(0, 10),
       paid_amount: 0,
@@ -177,6 +206,7 @@ export default function Purchase() {
         },
       ],
     });
+    setSupplierBalance(null);
   };
 
   // Create
@@ -199,6 +229,7 @@ export default function Purchase() {
       const data = res.data;
       setEditId(id);
       setForm({
+        supplier_id: data.supplier_id || '',
         bill_no: data.bill_no,
         purchase_date: data.purchase_date,
         paid_amount: data.paid_amount ?? 0,
@@ -214,6 +245,10 @@ export default function Purchase() {
           expiry_date: d.expiry_date,
         })),
       });
+      // Optionally fetch supplier balance for display
+      if (data.supplier_id) {
+        fetchSupplierBalance(data.supplier_id);
+      }
       setShowEdit(true);
     } catch (error) {
       console.error(error);
@@ -272,7 +307,7 @@ export default function Purchase() {
   // Status filter handler
   const handleStatusChange = (status) => {
     setStatusFilter(status);
-    setCurrentPage(1); // reset to first page
+    setCurrentPage(1);
   };
 
   // Search filter (local)
@@ -390,14 +425,17 @@ export default function Purchase() {
             generic={generic}
             brand={brand}
             dosage={dosage}
-            strength={strength} // ✅ correct
-            route={route} // ✅ correct
+            strength={strength}
+            route={route}
             addRow={addRow}
             removeRow={removeRow}
             changeMedicine={changeMedicine}
             onSubmit={handleCreateSubmit}
             submitLabel='Save Purchase'
             onCancel={closeModals}
+            suppliers={suppliers}
+            supplierBalance={supplierBalance}
+            fetchSupplierBalance={fetchSupplierBalance}
           />
         </Modal>
       )}
@@ -411,14 +449,17 @@ export default function Purchase() {
             generic={generic}
             brand={brand}
             dosage={dosage}
-            strength={strength} // ✅ correct
-            route={route} // ✅ correct
+            strength={strength}
+            route={route}
             addRow={addRow}
             removeRow={removeRow}
             changeMedicine={changeMedicine}
             onSubmit={handleEditSubmit}
             submitLabel='Update Purchase'
             onCancel={closeModals}
+            suppliers={suppliers}
+            supplierBalance={supplierBalance}
+            fetchSupplierBalance={fetchSupplierBalance}
           />
         </Modal>
       )}

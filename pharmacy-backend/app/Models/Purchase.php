@@ -8,6 +8,7 @@ class Purchase extends Model
 {
   protected $fillable = [
     'user_id',
+    'supplier_id',
     'pharmacy_id',
     'bill_no',
     'purchase_date',
@@ -21,5 +22,10 @@ class Purchase extends Model
     {
         return $this->hasMany(PurchaseDetail::class);
     }
+
+    public function supplier()
+{
+    return $this->belongsTo(Supplier::class);
+}
 
 }

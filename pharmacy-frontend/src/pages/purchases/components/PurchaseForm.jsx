@@ -14,9 +14,10 @@ export function PurchaseForm({
   onSubmit,
   submitLabel,
   onCancel,
+  suppliers = [],
+  supplierBalance = null,
+  fetchSupplierBalance,
 }) {
-  // Calculate total amount from medicines
-
   const medicines = form?.medicines || [];
 
   const totalAmount = medicines.reduce(
@@ -26,6 +27,47 @@ export function PurchaseForm({
 
   return (
     <form onSubmit={onSubmit} className='space-y-6'>
+      {/* Supplier Selection & Balance */}
+      <div className='grid grid-cols-1 sm:grid-cols-3 gap-4'>
+        <select
+          value={form.supplier_id || ''}
+          onChange={(e) => {
+            const supId = e.target.value;
+            setForm({ ...form, supplier_id: supId });
+            if (supId && fetchSupplierBalance) {
+              fetchSupplierBalance(supId);
+            } else {
+              // clear balance if no supplier
+              if (fetchSupplierBalance) fetchSupplierBalance(null);
+            }
+          }}
+          className='w-full rounded-lg border border-gray-200 bg-gray-50 px-4 py-2 text-gray-700 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-200'
+          required
+        >
+          <option value=''>Select Supplier</option>
+          {suppliers.map((s) => (
+            <option key={s.id} value={s.id}>
+              {s.name}
+            </option>
+          ))}
+        </select>
+
+        {supplierBalance !== null && (
+          <div className='col-span-2 text-sm p-2 rounded bg-gray-100 flex items-center'>
+            <span className='font-medium text-gray-700 mr-2'>
+              Current Balance:
+            </span>
+            <span
+              className={`font-bold ${
+                supplierBalance > 0 ? 'text-red-600' : 'text-green-600'
+              }`}
+            >
+              ${Number(supplierBalance).toFixed(2)}
+            </span>
+          </div>
+        )}
+      </div>
+
       {/* Bill, Date and Paid Amount */}
       <div className='grid grid-cols-1 sm:grid-cols-3 gap-4'>
         <input
@@ -146,7 +188,6 @@ export function PurchaseForm({
                       ))}
                     </select>
                   </td>
-
                   <td>
                     <select
                       value={med.brand}
@@ -164,7 +205,6 @@ export function PurchaseForm({
                       ))}
                     </select>
                   </td>
-
                   <td>
                     <select
                       value={med.dosage}
@@ -182,7 +222,6 @@ export function PurchaseForm({
                       ))}
                     </select>
                   </td>
-
                   <td>
                     <select
                       value={med.strength}
@@ -200,7 +239,6 @@ export function PurchaseForm({
                       ))}
                     </select>
                   </td>
-
                   <td>
                     <select
                       value={med.route}

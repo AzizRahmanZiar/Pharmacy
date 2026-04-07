@@ -11,10 +11,12 @@ use App\Http\Controllers\PurchaseController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SaleController;
 use App\Http\Controllers\DoctorController;
+use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\PharmacyController;
 use App\Http\Controllers\StaffPermissionController;
+use App\Http\Controllers\SupplierController;
 
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
@@ -92,4 +94,29 @@ Route::middleware('auth:sanctum')->group(function () {
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/staff-permissions', [StaffPermissionController::class, 'index']);
     Route::post('/staff-permissions', [StaffPermissionController::class, 'store']);
+});
+
+
+// Supplier routes
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/suppliers', [SupplierController::class, 'index']);
+    Route::post('/suppliers', [SupplierController::class, 'store']);
+});
+
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::apiResource('/payments', PaymentController::class);
+});
+
+Route::middleware('auth:sanctum')->group(function () {
+    // ... other routes ...
+
+    // Supplier routes
+    Route::get('/suppliers', [SupplierController::class, 'index']);
+    Route::post('/suppliers', [SupplierController::class, 'store']);
+    Route::get('/suppliers/{id}', [SupplierController::class, 'show']);
+    Route::put('/suppliers/{id}', [SupplierController::class, 'update']);
+    Route::delete('/suppliers/{id}', [SupplierController::class, 'destroy']);
+    Route::get('/suppliers/{id}/balance', [SupplierController::class, 'balance']);
+    Route::get('/suppliers/{id}/ledger', [SupplierController::class, 'ledger']);
 });

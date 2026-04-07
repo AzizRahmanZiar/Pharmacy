@@ -22,6 +22,7 @@ export function StockTable({ medicines, currentPage, perPage }) {
 
   const columns = [
     { key: 'id', label: 'ID' },
+    { key: 'supplier', label: 'Supplier' },
     { key: 'generic', label: 'Generic' },
     { key: 'brand', label: 'Brand' },
     { key: 'dosage', label: 'Dosage' },
@@ -53,6 +54,9 @@ export function StockTable({ medicines, currentPage, perPage }) {
             <tr key={med.id} className='hover:bg-gray-50'>
               <td className='whitespace-nowrap px-4 py-3 text-sm font-medium text-gray-800'>
                 {(currentPage - 1) * perPage + index + 1}
+              </td>
+              <td className='whitespace-nowrap px-4 py-3 text-sm text-gray-800'>
+                {med.supplier?.name || '—'}
               </td>
               <td className='whitespace-nowrap px-4 py-3 text-sm text-gray-800'>
                 {med.generic}

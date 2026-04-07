@@ -8,6 +8,7 @@ class Medicine extends Model
 {
 protected $fillable = [
     'user_id',
+    'supplier_id',
     'pharmacy_id',
     'generic',
     'brand',
@@ -30,4 +31,9 @@ protected $fillable = [
     {
         return $this->hasMany(SaleDetail::class);
     }
+
+    public function supplier()
+{
+    return $this->belongsTo(Supplier::class);
+}
 }
