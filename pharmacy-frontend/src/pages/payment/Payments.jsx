@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
-import { FiPlus } from 'react-icons/fi';
+import { useState, useEffect, useMemo } from 'react';
+import { FiPlus, FiEdit2, FiTrash2 } from 'react-icons/fi';
 import api from '../../api';
 import { Modal } from '../../components/Modal';
+import { DeleteConfirmModal } from '../../components/DeleteConfirmModal';
 import { LoadingSpinner } from '../../components/LoadingSpinner';
 import { SearchInput } from '../../components/SearchInput';
 import { TablePagination } from '../../components/TablePagination';
@@ -13,8 +14,9 @@ export default function Payments() {
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
   const [showForm, setShowForm] = useState(false);
+  const [editingPayment, setEditingPayment] = useState(null);
+  const [deleteId, setDeleteId] = useState(null);
 
   const itemsPerPage = 3;
 
@@ -37,7 +39,6 @@ export default function Payments() {
     try {
       const res = await api.get('/payments');
       setPayments(res.data.data || []);
-      setTotalPages(Math.ceil((res.data.data?.length || 0) / itemsPerPage));
     } catch (error) {
       console.error(error);
     } finally {
@@ -45,20 +46,34 @@ export default function Payments() {
     }
   };
 
-  const filteredPayments = payments.filter((p) => {
-    if (!searchTerm) return true;
-    const lower = searchTerm.toLowerCase();
-    return (
-      p.supplier?.name.toLowerCase().includes(lower) ||
-      p.note?.toLowerCase().includes(lower) ||
-      p.amount.toString().includes(lower)
-    );
-  });
+  const handleDelete = async () => {
+    try {
+      await api.delete(`/payments/${deleteId}`);
+      setDeleteId(null);
+      fetchPayments();
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
-  const paginatedPayments = filteredPayments.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage,
-  );
+  // Filter payments by search term
+  const filteredPayments = useMemo(() => {
+    if (!searchTerm.trim()) return payments;
+    const lower = searchTerm.toLowerCase();
+    return payments.filter(
+      (p) =>
+        p.supplier?.name.toLowerCase().includes(lower) ||
+        p.note?.toLowerCase().includes(lower) ||
+        p.amount.toString().includes(lower),
+    );
+  }, [payments, searchTerm]);
+
+  // Pagination
+  const paginatedPayments = useMemo(() => {
+    const start = (currentPage - 1) * itemsPerPage;
+    return filteredPayments.slice(start, start + itemsPerPage);
+  }, [filteredPayments, currentPage]);
+
   const totalFilteredPages = Math.ceil(filteredPayments.length / itemsPerPage);
 
   const handlePrev = () => {
@@ -69,86 +84,128 @@ export default function Payments() {
   };
 
   return (
-    <div className='space-y-6'>
-      <div className='flex flex-col sm:flex-row sm:items-center sm:justify-between'>
+    <div className='space-y-6 px-4 sm:px-6 lg:px-8'>
+      {/* Header */}
+      <div className='flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4'>
         <h1 className='text-2xl font-semibold text-gray-800'>
           Payments to Suppliers
         </h1>
         <button
-          onClick={() => setShowForm(true)}
-          className='mt-4 sm:mt-0 flex items-center rounded-lg bg-gradient-to-r from-indigo-600 to-purple-600 px-4 py-2 text-white shadow-md'
+          onClick={() => {
+            setEditingPayment(null);
+            setShowForm(true);
+          }}
+          className='inline-flex items-center justify-center rounded-lg bg-gradient-to-r from-indigo-600 to-purple-600 px-4 py-2 text-white shadow-md transition hover:from-indigo-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 active:scale-95'
         >
           <FiPlus className='mr-2 h-5 w-5' />
           New Payment
         </button>
       </div>
 
+      {/* Search */}
       <div className='flex justify-end'>
         <SearchInput
           value={searchTerm}
           onChange={setSearchTerm}
           placeholder='Search payments...'
+          className='w-full sm:w-64'
         />
       </div>
 
-      <div className='rounded-xl border border-gray-100 bg-white p-6 shadow-sm'>
+      {/* Table Container */}
+      <div className='rounded-xl border border-gray-100 bg-white p-4 sm:p-6 shadow-sm'>
         {loading ? (
           <LoadingSpinner />
         ) : paginatedPayments.length === 0 ? (
-          <div className='text-center py-12'>
-            <p className='text-gray-500 text-lg'>No payments found.</p>
+          <div className='py-12 text-center'>
+            <p className='text-lg text-gray-500'>No payments found.</p>
           </div>
         ) : (
           <>
-            <table className='min-w-full divide-y divide-gray-200'>
-              <thead className='bg-gray-50'>
-                <tr>
-                  <th className='px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500'>
-                    Supplier
-                  </th>
-                  <th className='px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500'>
-                    Amount
-                  </th>
-                  <th className='px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500'>
-                    Date
-                  </th>
-                  <th className='px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500'>
-                    Note
-                  </th>
-                </tr>
-              </thead>
-              <tbody className='divide-y divide-gray-200 bg-white'>
-                {paginatedPayments.map((p) => (
-                  <tr key={p.id} className='hover:bg-gray-50'>
-                    <td className='whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900'>
-                      {p.supplier?.name}
-                    </td>
-                    <td className='whitespace-nowrap px-6 py-4 text-sm text-gray-600'>
-                      ${Number(p.amount).toFixed(2)}
-                    </td>
-                    <td className='whitespace-nowrap px-6 py-4 text-sm text-gray-600'>
-                      {p.payment_date}
-                    </td>
-                    <td className='whitespace-nowrap px-6 py-4 text-sm text-gray-500'>
-                      {p.note}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            {/* Horizontal scroll wrapper */}
+            <div className='overflow-x-auto -mx-4 sm:mx-0'>
+              <div className='inline-block min-w-full align-middle'>
+                <table className='min-w-[640px] sm:min-w-full divide-y divide-gray-200'>
+                  <thead className='bg-gray-50'>
+                    <tr>
+                      <th className='px-4 py-3 sm:px-6 text-left text-xs font-medium uppercase tracking-wider text-gray-500'>
+                        Supplier
+                      </th>
+                      <th className='px-4 py-3 sm:px-6 text-left text-xs font-medium uppercase tracking-wider text-gray-500'>
+                        Amount
+                      </th>
+                      <th className='px-4 py-3 sm:px-6 text-left text-xs font-medium uppercase tracking-wider text-gray-500'>
+                        Date
+                      </th>
+                      <th className='px-4 py-3 sm:px-6 text-left text-xs font-medium uppercase tracking-wider text-gray-500'>
+                        Note
+                      </th>
+                      <th className='px-4 py-3 sm:px-6 text-right text-xs font-medium uppercase tracking-wider text-gray-500'>
+                        Actions
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className='divide-y divide-gray-200 bg-white'>
+                    {paginatedPayments.map((payment) => (
+                      <tr key={payment.id} className='hover:bg-gray-50'>
+                        <td className='whitespace-nowrap px-4 py-4 sm:px-6 text-sm font-medium text-gray-900'>
+                          {payment.supplier?.name}
+                        </td>
+                        <td className='whitespace-nowrap px-4 py-4 sm:px-6 text-sm text-gray-600'>
+                          ${Number(payment.amount).toFixed(2)}
+                        </td>
+                        <td className='whitespace-nowrap px-4 py-4 sm:px-6 text-sm text-gray-600'>
+                          {payment.payment_date}
+                        </td>
+                        <td className='whitespace-nowrap px-4 py-4 sm:px-6 text-sm text-gray-500'>
+                          {payment.note || '-'}
+                        </td>
+                        <td className='whitespace-nowrap px-4 py-4 sm:px-6 text-right text-sm'>
+                          <div className='flex items-center justify-end gap-2'>
+                            <button
+                              onClick={() => {
+                                setEditingPayment(payment);
+                                setShowForm(true);
+                              }}
+                              className='inline-flex items-center justify-center rounded-lg bg-blue-50 p-2 text-blue-700 transition hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 active:scale-95'
+                              aria-label='Edit payment'
+                            >
+                              <FiEdit2 className='h-4 w-4' />
+                            </button>
+                            <button
+                              onClick={() => setDeleteId(payment.id)}
+                              className='inline-flex items-center justify-center rounded-lg bg-red-50 p-2 text-red-700 transition hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-1 active:scale-95'
+                              aria-label='Delete payment'
+                            >
+                              <FiTrash2 className='h-4 w-4' />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
             <TablePagination
               currentPage={currentPage}
               totalPages={totalFilteredPages}
               onPrev={handlePrev}
               onNext={handleNext}
+              className='mt-4'
             />
           </>
         )}
       </div>
 
+      {/* Payment Form Modal */}
       {showForm && (
-        <Modal title='Record Payment' onClose={() => setShowForm(false)}>
+        <Modal
+          title={editingPayment ? 'Edit Payment' : 'New Payment'}
+          onClose={() => setShowForm(false)}
+        >
           <PaymentForm
+            payment={editingPayment}
             suppliers={suppliers}
             onSuccess={() => {
               setShowForm(false);
@@ -158,6 +215,14 @@ export default function Payments() {
           />
         </Modal>
       )}
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmModal
+        isOpen={!!deleteId}
+        onClose={() => setDeleteId(null)}
+        onConfirm={handleDelete}
+        itemName={`payment of $${payments.find((p) => p.id === deleteId)?.amount?.toFixed(2)} to ${payments.find((p) => p.id === deleteId)?.supplier?.name}`}
+      />
     </div>
   );
 }

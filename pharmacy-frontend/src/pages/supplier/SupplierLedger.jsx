@@ -2,6 +2,8 @@ import { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../../api';
 import { LoadingSpinner } from '../../components/LoadingSpinner';
+import { SearchInput } from '../../components/SearchInput';
+import { Modal } from '../../components/Modal';
 
 export default function SupplierLedger() {
   const { id } = useParams();
@@ -13,10 +15,8 @@ export default function SupplierLedger() {
   const [ledgers, setLedgers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
-  // Pagination state
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 1;
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedLedger, setSelectedLedger] = useState(null);
 
   useEffect(() => {
     if (isNaN(supplierId)) {
@@ -45,7 +45,6 @@ export default function SupplierLedger() {
         ledgersData = ledgersData.data;
       }
       setLedgers(Array.isArray(ledgersData) ? ledgersData : []);
-      setCurrentPage(1); // Reset to first page when new data loads
     } catch (err) {
       console.error('Ledger fetch error:', err);
       setError(err.response?.data?.message || 'Failed to load ledger data');
@@ -54,19 +53,33 @@ export default function SupplierLedger() {
     }
   };
 
-  // Pagination calculations
-  const totalPages = Math.ceil(ledgers.length / itemsPerPage);
-  const paginatedLedgers = useMemo(() => {
-    const start = (currentPage - 1) * itemsPerPage;
-    return ledgers.slice(start, start + itemsPerPage);
-  }, [ledgers, currentPage]);
+  // Filter ledgers based on search term (case-insensitive)
+  const filteredLedgers = useMemo(() => {
+    if (!searchTerm.trim()) return ledgers;
+    const term = searchTerm.toLowerCase();
+    return ledgers.filter((ledger) => {
+      // Search in type, amount, date, and any description/note fields
+      const amountMatch = Number(ledger.amount).toString().includes(term);
+      const typeMatch = ledger.type?.toLowerCase().includes(term);
+      const dateMatch = ledger.transaction_date
+        ? new Date(ledger.transaction_date)
+            .toLocaleDateString()
+            .toLowerCase()
+            .includes(term)
+        : false;
+      const descriptionMatch =
+        ledger.description?.toLowerCase().includes(term) ||
+        ledger.note?.toLowerCase().includes(term);
+      return amountMatch || typeMatch || dateMatch || descriptionMatch;
+    });
+  }, [ledgers, searchTerm]);
 
-  const handlePrev = () => {
-    if (currentPage > 1) setCurrentPage((prev) => prev - 1);
+  const openModal = (ledger) => {
+    setSelectedLedger(ledger);
   };
 
-  const handleNext = () => {
-    if (currentPage < totalPages) setCurrentPage((prev) => prev + 1);
+  const closeModal = () => {
+    setSelectedLedger(null);
   };
 
   if (loading) return <LoadingSpinner />;
@@ -87,39 +100,52 @@ export default function SupplierLedger() {
 
   return (
     <div className='space-y-6 p-6'>
-      {/* Back button */}
-      <button
-        onClick={() => navigate('/suppliers')}
-        className='text-blue-600 hover:underline flex items-center gap-1'
-      >
-        ← Back to Suppliers
-      </button>
-
-      {/* Supplier Info Card */}
-      <div className='bg-white p-6 rounded-lg shadow'>
-        <h2 className='text-2xl font-bold text-gray-800'>{supplier.name}</h2>
-        <p className='text-gray-600 mt-1'>
-          {supplier.phone && `📞 ${supplier.phone}`}
-          {supplier.address && ` | 📍 ${supplier.address}`}
-        </p>
-        <p className='mt-4 text-lg'>
-          Current Balance:
+      <div className='flex flex-wrap items-center gap-4 bg-white p-4 rounded-lg shadow'>
+        <button
+          onClick={() => navigate('/suppliers')}
+          className='text-blue-600 hover:underline flex items-center gap-1 whitespace-nowrap'
+        >
+          ← Back to Suppliers
+        </button>
+        <div className='h-6 w-px bg-gray-300' /> {/* Vertical divider */}
+        <div className='flex flex-wrap items-baseline gap-2'>
+          <span className='text-xl font-bold text-gray-800'>
+            {supplier.name}
+          </span>
+          {supplier.phone && (
+            <span className='text-gray-600'>📞 {supplier.phone}</span>
+          )}
+          {supplier.address && (
+            <span className='text-gray-600'>📍 {supplier.address}</span>
+          )}
+        </div>
+        <div className='ml-auto flex items-center gap-2'>
+          <span className='text-gray-700'>Current Balance:</span>
           <span
-            className={`ml-2 font-bold ${balance > 0 ? 'text-red-600' : 'text-green-600'}`}
+            className={`font-bold ${balance > 0 ? 'text-red-600' : 'text-green-600'}`}
           >
             ${Number(balance).toFixed(2)}
           </span>
-        </p>
+        </div>
       </div>
 
-      {/* Ledger Table */}
+      {/* Ledger Table with Search */}
       <div className='bg-white rounded-lg shadow overflow-hidden'>
-        <h3 className='text-lg font-semibold p-4 border-b bg-gray-50'>
-          Ledger History
-        </h3>
-        <div className='overflow-x-auto'>
+        <div className='flex items-center justify-between p-4 border-b bg-gray-50'>
+          <h3 className='text-lg font-semibold text-gray-800'>
+            Ledger History
+          </h3>
+          <SearchInput
+            value={searchTerm}
+            onChange={setSearchTerm}
+            placeholder='Search by type, amount, date, or description...'
+          />
+        </div>
+
+        {/* Scrollable Table */}
+        <div className='overflow-x-auto max-h-72 overflow-y-auto'>
           <table className='min-w-full divide-y divide-gray-200'>
-            <thead className='bg-gray-50'>
+            <thead className='bg-gray-50 sticky top-0 z-10'>
               <tr>
                 <th className='px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500'>
                   Date
@@ -136,8 +162,12 @@ export default function SupplierLedger() {
               </tr>
             </thead>
             <tbody className='divide-y divide-gray-200 bg-white'>
-              {paginatedLedgers.map((ledger) => (
-                <tr key={ledger.id} className='hover:bg-gray-50'>
+              {filteredLedgers.map((ledger) => (
+                <tr
+                  key={ledger.id}
+                  className='hover:bg-gray-50 cursor-pointer transition-colors'
+                  onClick={() => openModal(ledger)}
+                >
                   <td className='whitespace-nowrap px-6 py-4 text-sm text-gray-600'>
                     {ledger.transaction_date
                       ? new Date(ledger.transaction_date).toLocaleDateString()
@@ -169,55 +199,84 @@ export default function SupplierLedger() {
                   </td>
                 </tr>
               ))}
-              {paginatedLedgers.length === 0 && (
+              {filteredLedgers.length === 0 && (
                 <tr>
                   <td colSpan='4' className='text-center py-8 text-gray-500'>
-                    No ledger entries found for this supplier.
+                    {searchTerm
+                      ? 'No matching ledger entries found.'
+                      : 'No ledger entries found for this supplier.'}
                   </td>
                 </tr>
               )}
             </tbody>
           </table>
         </div>
-
-        {/* Pagination Controls */}
-        {totalPages > 1 && (
-          <div className='flex items-center justify-between px-6 py-3 bg-gray-50 border-t'>
-            <div className='text-sm text-gray-700'>
-              Showing {(currentPage - 1) * itemsPerPage + 1} to{' '}
-              {Math.min(currentPage * itemsPerPage, ledgers.length)} of{' '}
-              {ledgers.length} entries
-            </div>
-            <div className='flex gap-2'>
-              <button
-                onClick={handlePrev}
-                disabled={currentPage === 1}
-                className={`px-3 py-1 rounded text-sm ${
-                  currentPage === 1
-                    ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
-                    : 'bg-indigo-600 text-white hover:bg-indigo-700'
-                }`}
-              >
-                Previous
-              </button>
-              <span className='px-3 py-1 text-sm text-gray-700'>
-                Page {currentPage} of {totalPages}
-              </span>
-              <button
-                onClick={handleNext}
-                disabled={currentPage === totalPages}
-                className={`px-3 py-1 rounded text-sm ${
-                  currentPage === totalPages
-                    ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
-                    : 'bg-indigo-600 text-white hover:bg-indigo-700'
-                }`}
-              >
-                Next
-              </button>
-            </div>
-          </div>
-        )}
       </div>
+
+      {/* Modal for Ledger Details */}
+      {selectedLedger && (
+        <Modal onClose={closeModal} title='Ledger Entry Details'>
+          <div className='space-y-3'>
+            <div className='grid grid-cols-2 gap-2 border-b pb-2'>
+              <span className='font-medium text-gray-600'>Date:</span>
+              <span className='text-gray-800'>
+                {selectedLedger.transaction_date
+                  ? new Date(selectedLedger.transaction_date).toLocaleString()
+                  : 'N/A'}
+              </span>
+            </div>
+            <div className='grid grid-cols-2 gap-2 border-b pb-2'>
+              <span className='font-medium text-gray-600'>Type:</span>
+              <span
+                className={`capitalize font-semibold ${
+                  selectedLedger.type === 'purchase'
+                    ? 'text-red-600'
+                    : 'text-green-600'
+                }`}
+              >
+                {selectedLedger.type}
+              </span>
+            </div>
+            <div className='grid grid-cols-2 gap-2 border-b pb-2'>
+              <span className='font-medium text-gray-600'>Amount:</span>
+              <span
+                className={`font-bold ${
+                  selectedLedger.type === 'purchase'
+                    ? 'text-red-600'
+                    : 'text-green-600'
+                }`}
+              >
+                {selectedLedger.type === 'purchase' ? '+' : '-'}$
+                {Number(selectedLedger.amount).toFixed(2)}
+              </span>
+            </div>
+            <div className='grid grid-cols-2 gap-2 border-b pb-2'>
+              <span className='font-medium text-gray-600'>Balance After:</span>
+              <span className='font-semibold text-gray-800'>
+                ${Number(selectedLedger.balance).toFixed(2)}
+              </span>
+            </div>
+            {(selectedLedger.description || selectedLedger.note) && (
+              <div className='grid grid-cols-2 gap-2 border-b pb-2'>
+                <span className='font-medium text-gray-600'>
+                  Description/Note:
+                </span>
+                <span className='text-gray-800 break-words'>
+                  {selectedLedger.description || selectedLedger.note}
+                </span>
+              </div>
+            )}
+            {selectedLedger.reference && (
+              <div className='grid grid-cols-2 gap-2'>
+                <span className='font-medium text-gray-600'>Reference:</span>
+                <span className='text-gray-800'>
+                  {selectedLedger.reference}
+                </span>
+              </div>
+            )}
+          </div>
+        </Modal>
+      )}
     </div>
   );
 }

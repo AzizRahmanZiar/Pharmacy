@@ -91,13 +91,13 @@ export default function Layout() {
       to: '/suppliers',
       icon: FiUsers,
       label: 'Suppliers',
-      roles: ['admin', 'staff'],
+      roles: ['admin'],
     },
     {
       to: '/payments',
       icon: RiExchangeDollarLine,
       label: 'Payments',
-      roles: ['admin', 'staff'],
+      roles: ['admin'],
     },
   ];
 
